@@ -70,7 +70,7 @@ async def start(ctx):
         
             f.close()
 
-            await asyncio.sleep(5)
+            await asyncio.sleep(1800)
 
     except Exception as e:
         print(traceback.format_exc())
