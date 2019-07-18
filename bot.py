@@ -1,7 +1,7 @@
 #Credits to Kimchi
 import discord
 from discord.ext.commands import Bot
-import asyncio, json, requests
+import asyncio, json
 import os, time, re, subprocess
 from datetime import datetime, timedelta
 from dateutil import parser
