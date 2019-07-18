@@ -42,6 +42,9 @@ async def on_ready():
 @client.command()
 async def start(ctx):
     try:
+        
+        await ctx.send("The filtering process has started. Will be checking for expired licenses periodically (30 min intervals).")
+
         while True:
             f = open("licensed users.txt", "r")
             lines = f.readlines()
