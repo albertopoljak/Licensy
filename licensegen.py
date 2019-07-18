@@ -12,8 +12,8 @@ print("----------------------------------------------------------")
 print("How many members licenses would you like to generate?")
 amt = int(input())
 
-# 
-f = open("license list.txt", "w")
+# Write/Create new File if not there + Generate Active Licenses
+f = open("license list.txt", "w+")
 c = 0
 while (c < amt):
     val = ('').join(random.choices(string.ascii_letters + string.digits, k = 30))
