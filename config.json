@@ -1,6 +1,7 @@
 {
-    "token":"YOURDISCORDBOTTOKENHERE",
+    "token":"INSERTDISCORDTOKENHERE",
     "prefix":"!",
     "BotStatus":"Credits to Kimchi",
-    "role_to_assign": "Member"
+    "role_to_assign": "Member",
+    "license_duration_days": "30"
 }
