@@ -1,4 +1,6 @@
-#Credits to Kimchi
+#####################
+# Credits to Kimchi #
+#####################
 import discord
 from discord.ext.commands import Bot
 import asyncio, json
@@ -7,7 +9,9 @@ from datetime import datetime, timedelta
 from dateutil import parser
 import traceback
 
-# Bot Config (config.json)
+############################
+# Bot Config (config.json) #
+############################
 with open("config.json") as (f):
     data = json.load(f)
 BOT_TOKEN = data["token"]
@@ -17,6 +21,10 @@ LICENSE_DURATION_DAYS = data["license_duration_days"]
 
 client = Bot(command_prefix = BOT_PREFIX)
 
+
+#########################
+# Functions For License #
+#########################
 def keyGrab(key):
     f = open("license list.txt", 'r')
     for line in f:
@@ -33,16 +41,25 @@ def keyRemove(key):
 
     f.close()
 
+#######################
+# Startup Code [Main] #
+#######################
 @client.event
 async def on_ready():
     await client.change_presence(activity= discord.Game(name = data['BotStatus']))
     print ("The MemberLicense Discord Bot is online")
+
+
+#####################
+# Commands / Source #
+#####################
 
 # Check if license not expired / Remove roles from those who have expired licenses
 @client.command()
 async def start(ctx):
     try:
         
+        # Announce start
         await ctx.send("The filtering process has started. Will be checking for expired licenses periodically (30 min intervals).")
 
         while True:
@@ -65,9 +82,11 @@ async def start(ctx):
                 print ("Today's Date: " + str(datetime.now()))
                 print ("-----------------------")
 
+                # If Expired
                 if (expirationDate < datetime.now()):
                     role = discord.utils.get(member.guild.roles, name = ROLE_TO_ASSIGN)
                     await member.remove_roles(role)
+                    await member.send("Your license has expired for the following role: " + ROLE_TO_ASSIGN)
                 else:
                     f.write(str(idnum) + ";" + str(expirationDate) + "\n")
         
@@ -78,9 +97,6 @@ async def start(ctx):
     except Exception as e:
         print(traceback.format_exc())
 
-"""""""""
-Commands
-"""""""""
 # Redeem License Command
 @client.command(pass_context = True)
 async def redeem(ctx, license):
@@ -107,7 +123,7 @@ async def redeem(ctx, license):
             # Add Role
             await member.add_roles(role)
 
-            #Direct Message User and Remove Key
+            # Direct Message User and Remove Key
             
             await ctx.author.send("Your license has been verified for the following role: " + ROLE_TO_ASSIGN + " for " + LICENSE_DURATION_DAYS + " Days.")
             keyRemove(keys)
