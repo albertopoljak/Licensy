@@ -1,13 +1,14 @@
 #####################
 # Credits to Kimchi #
 #####################
-import discord
-from discord.ext.commands import Bot
-import asyncio, json
-import os, time, re, subprocess
+import traceback
+import asyncio
+import json
+import os
 from datetime import datetime, timedelta
 from dateutil import parser
-import traceback
+import discord
+from discord.ext.commands import Bot
 
 ############################
 # Bot Config (config.json) #
@@ -19,13 +20,13 @@ BOT_PREFIX = data["prefix"]
 ROLE_TO_ASSIGN = data["role_to_assign"]
 LICENSE_DURATION_DAYS = data["license_duration_days"]
 
-client = Bot(command_prefix = BOT_PREFIX)
+client = Bot(command_prefix=BOT_PREFIX)
 
 
 #########################
 # Functions For License #
 #########################
-def keyGrab(key):
+def key_grab(key):
     f = open("license list.txt", 'r')
     for line in f:
         clean = line.split("\n")
@@ -33,7 +34,8 @@ def keyGrab(key):
     
     f.close()
 
-def keyRemove(key):
+
+def key_remove(key):
     os.remove("license list.txt")
     f = open('license list.txt', "a")
     for ELEM in key:
@@ -41,13 +43,14 @@ def keyRemove(key):
 
     f.close()
 
+
 #######################
 # Startup Code [Main] #
 #######################
 @client.event
 async def on_ready():
-    await client.change_presence(activity= discord.Game(name = data['BotStatus']))
-    print ("The MemberLicense Discord Bot is online")
+    await client.change_presence(activity=discord.Game(name=data['BotStatus']))
+    print("The MemberLicense Discord Bot is online")
 
 
 #####################
@@ -60,7 +63,8 @@ async def start(ctx):
     try:
         
         # Announce start
-        await ctx.send("The filtering process has started. Will be checking for expired licenses periodically (30 min intervals).")
+        await ctx.send("The filtering process has started. "
+                       "Will be checking for expired licenses periodically (30 min intervals).")
 
         while True:
             f = open("licensed users.txt", "r")
@@ -68,27 +72,27 @@ async def start(ctx):
 
             f.close()
 
-            f = open("licensed users.txt" , "w")
+            f = open("licensed users.txt", "w")
             for line in lines:
                 info = line.split(";")
                 
-                idnum = int(info[0])
-                member = ctx.guild.get_member(idnum)
-                expirationDate = parser.parse(info[1])
+                id_num = int(info[0])
+                member = ctx.guild.get_member(id_num)
+                expiration_date = parser.parse(info[1])
 
                 # Debug Console
-                print ("User: " + str(member))
-                print ("Expiration Date: " +str(expirationDate))
-                print ("Today's Date: " + str(datetime.now()))
-                print ("-----------------------")
+                print("User: " + str(member))
+                print("Expiration Date: " + str(expiration_date))
+                print("Today's Date: " + str(datetime.now()))
+                print("-----------------------")
 
                 # If Expired
-                if (expirationDate < datetime.now()):
-                    role = discord.utils.get(member.guild.roles, name = ROLE_TO_ASSIGN)
+                if expiration_date < datetime.now():
+                    role = discord.utils.get(member.guild.roles, name=ROLE_TO_ASSIGN)
                     await member.remove_roles(role)
                     await member.send("Your license has expired for the following role: " + ROLE_TO_ASSIGN)
                 else:
-                    f.write(str(idnum) + ";" + str(expirationDate) + "\n")
+                    f.write(str(id_num) + ";" + str(expiration_date) + "\n")
         
             f.close()
 
@@ -97,13 +101,14 @@ async def start(ctx):
     except Exception as e:
         print(traceback.format_exc())
 
+
 # Redeem License Command
-@client.command(pass_context = True)
+@client.command(pass_context=True)
 async def redeem(ctx, license):
     await ctx.message.delete()
 
     keys = []
-    keyGrab(keys)
+    key_grab(keys)
 
     # If Invalid Key
     if license not in keys:
@@ -118,29 +123,27 @@ async def redeem(ctx, license):
             return
         
         try:
-            role = discord.utils.get(member.guild.roles, name = ROLE_TO_ASSIGN)
+            role = discord.utils.get(member.guild.roles, name=ROLE_TO_ASSIGN)
 
             # Add Role
             await member.add_roles(role)
 
             # Direct Message User and Remove Key
-            
-            await ctx.author.send("Your license has been verified for the following role: " + ROLE_TO_ASSIGN + " for " + LICENSE_DURATION_DAYS + " Days.")
-            keyRemove(keys)
+            await ctx.author.send(f"Your license has been verified for the following "
+                                  f"role: {ROLE_TO_ASSIGN} for {LICENSE_DURATION_DAYS} Days.")
+            key_remove(keys)
 
             f = open("licensed users.txt", "a+")
-            idnum = member.id
-            expirationDate = datetime.now() + timedelta(days = int(LICENSE_DURATION_DAYS))
-            f.write(str(idnum) + ";" + str(expirationDate) + "\n")
-
+            id_num = member.id
+            expiration_date = datetime.now() + timedelta(days=int(LICENSE_DURATION_DAYS))
+            f.write(str(id_num) + ";" + str(expiration_date) + "\n")
             f.close()
 
-
-        
         # Bot Error Exception
         except Exception as e:
-            print (e)
-            await ctx.send("An error has occured while adding the role. Try checking if there is a role for: " + ROLE_TO_ASSIGN)
+            print(e)
+            await ctx.send(f"An error has occurred while adding the role. "
+                           f"Try checking if there is a role for: {ROLE_TO_ASSIGN}")
 
 
 client.run(BOT_TOKEN)
