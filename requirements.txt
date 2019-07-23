@@ -1,2 +1,3 @@
 discord
 python-dateutil
+aiosqlite
