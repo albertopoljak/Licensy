@@ -28,6 +28,8 @@ class LicenseHandler(commands.Cog):
 
         TODO: add event on_guild_remove
 
+        TODO: Move query to database handler, use yield?
+
         """
         async with self.bot.main_db.connection.execute("SELECT * FROM LICENSED_MEMBERS") as cursor:
             async for row in cursor:
@@ -72,7 +74,7 @@ class LicenseHandler(commands.Cog):
             await member.send(f"Your license in guild **{guild}** has expired "
                               f"for the following role: **{member_role}** ")
 
-    @commands.command()
+    @commands.command(aliases=["activate"])
     @commands.guild_only()
     async def redeem(self, ctx, license):
         """
@@ -84,7 +86,7 @@ class LicenseHandler(commands.Cog):
 
         """
         guild = ctx.guild
-        if await self.is_valid_license(license, guild.id):
+        if await self.bot.main_db.is_valid_license(license, guild.id):
             # Add role to the user
             # First we get the role linked to the license
             role_id = await self.bot.main_db.get_license_role_id(license)
@@ -92,31 +94,11 @@ class LicenseHandler(commands.Cog):
             # Finally we add the role to the user
             await ctx.author.add_roles(role, reason="Redeemed license.")
             # Remove guild license from database
-            await self.bot.main_db.drop_guild_license(license, guild.id)
+            await self.bot.main_db.delete_license(license)
             # Send message notifying user
-            await ctx.send(f"License valid - adding role {role.mention} to {ctx.author}")
+            await ctx.send(f"License valid - adding role {role.mention} to {ctx.author.mention}")
         else:
             await ctx.send("The license key you entered is invalid/deactivated.")
-
-    async def is_valid_license(self, license: str, guild_id: int) -> bool:
-        """
-        :param license: License to check
-        :param guild_id:
-        :return: True if license is valid, False otherwise
-
-        TODO: guild_id is actually not needed since LICENSE is unique in the database, refactor
-
-        TODO: query doesn't require all rows with *, we can just use column LICENSE
-
-        """
-        async with self.bot.main_db.connection.execute("SELECT * FROM GUILD_LICENSES WHERE GUILD_ID=?",
-                                                       (guild_id,)) as cursor:
-            async for row in cursor:
-                db_license = row[0]
-                db_guild_id = int(row[1])
-                if db_license == license and db_guild_id == guild_id:
-                    return True
-        return False
 
     @commands.command(aliases=["create"])
     @commands.guild_only()

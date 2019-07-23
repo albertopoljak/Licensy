@@ -60,6 +60,29 @@ class DbTest(commands.Cog):
 
         await cur.close()
 
+    @commands.command()
+    async def test_add(self, ctx, guild_id, license):
+        """"
+        Insert passed license into database, license is tied to guild_id and fixed role ID 12345
+
+        """
+        query = "INSERT INTO GUILD_LICENSES(LICENSE, GUILD_ID, LICENSED_ROLE_ID) VALUES(?,?,?)"
+        cur = await self.bot.main_db.connection.cursor()
+        await cur.execute(query, (license, guild_id, 12345))
+        await cur.close()
+        await self.bot.main_db.connection.commit()
+
+    @commands.command()
+    async def valid(self, ctx, license):
+        """
+        Checks if passed license is valid
+
+        """
+        if await self.bot.main_db.is_valid_license(license, ctx.guild.id):
+            await ctx.send(f"Valid")
+        else:
+            await ctx.send(f"Invalid")
+
 
 def setup(bot):
     bot.add_cog(DbTest(bot))

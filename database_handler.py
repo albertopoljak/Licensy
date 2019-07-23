@@ -52,8 +52,6 @@ class DatabaseHandler:
                            "PREFIX TEXT CHECK(PREFIX IS NULL OR LENGTH(PREFIX) <= 3), "
                            "ENABLE_LOG_CHANNEL TINYINT DEFAULT 0, "
                            "LOG_CHANNEL_ID TEXT, "
-                           "ENABLE_JOIN_ROLE TINYINT DEFAULT 0, "
-                           "JOIN_ROLE_ID TEXT, "
                            "DEFAULT_LICENSE_ROLE_ID TEXT, "
                            "DEFAULT_LICENSE_DURATION_HOURS UNSIGNED BIG INT DEFAULT 720"
                            ")"
@@ -65,7 +63,7 @@ class DatabaseHandler:
                            "GUILD_ID TEXT, "
                            "EXPIRATION_DATE DATE, "
                            "LICENSED_ROLE_ID TEXT, "
-                           "UNIQUE(MEMBER_ID, GUILD_ID)"
+                           "UNIQUE(MEMBER_ID, LICENSED_ROLE_ID)"
                            ")"
                            )
 
@@ -73,8 +71,7 @@ class DatabaseHandler:
                            "("
                            "LICENSE TEXT PRIMARY KEY, "
                            "GUILD_ID TEXT, "
-                           "LICENSED_ROLE_ID TEXT, "
-                           "UNIQUE(LICENSE, GUILD_ID)"
+                           "LICENSED_ROLE_ID TEXT"
                            ")"
                            )
 
@@ -86,30 +83,26 @@ class DatabaseHandler:
     def _construct_path(db_name: str) -> str:
         return DatabaseHandler.DB_PATH + db_name + DatabaseHandler.DB_EXTENSION
 
-    async def drop_guild_license(self, license: str, guild_id: int):
+    async def delete_license(self, license: str):
         """
         Called when member has redeemed license.
-        The license is deleted from table GUILD_LICENSES
+        The license is deleted from table GUILD_LICENSES.
+        Guild ID is not needed since licenses are unique.
         :param license: license to delete
-        :param guild_id:
-
-        TODO: is guild_id necessary since license is unique?
 
         """
-        delete_query = "DELETE FROM GUILD_LICENSES WHERE LICENSE=? AND GUILD_ID=?"
-        await self.connection.execute(delete_query, (license, guild_id))
+        delete_query = "DELETE FROM GUILD_LICENSES WHERE LICENSE=?"
+        await self.connection.execute(delete_query, (license,))
         await self.connection.commit()
 
     async def generate_guild_licenses(self, number: int, guild_id: int, default_license_role_id: int) -> list:
         """
-        :param number: number of licenses to generate
-        :param guild_id:
+        :param number: int larger than 0, number of licenses to generate
+        :param guild_id: int guild id. Needed to differentiate guilds even though licenses are unique
+                         for example to avoid members activating a valid license from one guild into
+                         another guild (where linked roles don't exist).
         :param default_license_role_id: role to link to the license
         :return: list of all generated licenses
-
-        TODO: Use positive_number type hint
-
-        TODO: is guild_id necessary since license is unique?
 
         """
         licenses = licence_generator.generate(number)
@@ -124,6 +117,7 @@ class DatabaseHandler:
         Gets the default license role id from specific guild.
         This role will be used as link when no role argument is passed in 'generate' command
         :return: int default license role id
+
         """
         query = "SELECT DEFAULT_LICENSE_ROLE_ID FROM GUILDS WHERE GUILD_ID=?"
         async with self.connection.execute(query, (guild_id,)) as cursor:
@@ -145,12 +139,13 @@ class DatabaseHandler:
     async def get_guild_licenses(self, number: int, guild_id: int, license_role_id: int) -> list:
         """
         Returns list of licenses that are linked to license_role_id role.
-        :param number: max number of licenses to return
-        :param guild_id:
+        :param number: int larger than 0, max number of licenses to return
+        :param guild_id: int guild id. Needed to differentiate guilds even though licenses are unique
+                         for example to avoid members activating a valid license from one guild into
+                         another guild (where linked roles don't exist).
         :param license_role_id: we get only those licenses that are linked to this role id
         :return: list of licenses
 
-         TODO: is guild_id necessary since license is unique?
         """
         licenses = []
         query = "SELECT LICENSE FROM GUILD_LICENSES WHERE GUILD_ID=? AND LICENSED_ROLE_ID=? LIMIT ?"
@@ -162,3 +157,19 @@ class DatabaseHandler:
                 licenses.append(row[0])
 
         return licenses
+
+    async def is_valid_license(self, license: str, guild_id: int) -> bool:
+        """
+        :param license: License to check
+        :param guild_id: int guild id. Needed to differentiate guilds even though licenses are unique
+                         for example to avoid members activating a valid license from one guild into
+                         another guild (where linked roles don't exist).
+        :return: True if license is valid, False otherwise
+
+        """
+        query = "SELECT LICENSE FROM GUILD_LICENSES WHERE LICENSE=? AND GUILD_ID=?"
+        async with self.connection.execute(query, (license, guild_id)) as cursor:
+            row = await cursor.fetchone()
+            if row is not None:
+                return True
+        return False

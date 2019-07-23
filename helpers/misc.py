@@ -1,7 +1,11 @@
 def positive_integer(integer):
     """
     Used as argument converter, example:
-        def divide(a: int, b: positive_integer)
+        @commands.command()
+        async def divide(a: int, b: positive_integer):
+    Note that converters are specific to discord py library
+    and will not work with regular python functions, only
+    discord py commands.
 
     :param integer: type that can be casted to int
     :return: int(integer) if param integer is larger that 0
