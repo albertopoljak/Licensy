@@ -5,7 +5,7 @@ def positive_integer(integer):
 
     :param integer: type that can be casted to int
     :return: int(integer) if param integer is larger that 0
-    :raise: AttributeError if integer is <0
+    :raise: AttributeError if integer is < 1
 
     """
     integer = int(integer)

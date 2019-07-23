@@ -7,7 +7,7 @@ startup_extensions = ["cogs.licenses", "cogs.db_test", "cogs.cmd_errors"]
 bot = commands.Bot(command_prefix="!")
 
 if __name__ == "__main__":
-    print(f"Loaded extensions:")
+    print("Loaded extensions:")
     for extension in startup_extensions:
         try:
             bot.load_extension(extension)
@@ -42,7 +42,7 @@ async def on_disconnect():
 async def on_ready():
     print(f"\nLogged in as: {bot.user.name} - {bot.user.id}"
           f"\nDiscordPy version: {discord.__version__}\n")
-    print(f"Successfully logged in and booted...!\n")
+    print("Successfully logged in and booted...!\n")
 
 
 bot.run()
