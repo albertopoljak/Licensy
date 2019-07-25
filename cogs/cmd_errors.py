@@ -73,8 +73,10 @@ class CmdErrors(commands.Cog):
             await ctx.send(error.message)
             return
 
-        print(f"Ignoring {type(error)} exception in command '{ctx.command}':{error}")
+        exception_message = f"Ignoring {type(error)} exception in command '{ctx.command}':{error}"
+        print(exception_message)
         traceback.print_exception(type(error), error, error.__traceback__)
+        # TODO Send msg in log channel
 
 
 def setup(bot):

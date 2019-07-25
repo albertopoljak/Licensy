@@ -3,7 +3,7 @@ from discord.ext import commands
 from database_handler import DatabaseHandler
 import traceback
 
-startup_extensions = ["cogs.licenses", "cogs.db_test", "cogs.cmd_errors"]
+startup_extensions = ["cogs.licenses", "cogs.database_debug", "cogs.cmd_errors"]
 bot = commands.Bot(command_prefix="!")
 
 if __name__ == "__main__":

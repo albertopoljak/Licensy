@@ -1,6 +1,8 @@
+from datetime import datetime, timedelta
+from dateutil import parser
 from discord.ext import commands
 import discord.utils
-from helpers.misc import positive_integer
+from helpers.converters import positive_integer, license_duration
 from helpers.errors import RoleNotFound
 
 
@@ -35,22 +37,26 @@ class LicenseHandler(commands.Cog):
             async for row in cursor:
                 member_id = int(row[0])
                 member_guild_id = int(row[1])
-                expiration_date = int(row[2])
+                expiration_date = parser.parse(row[2])
                 licensed_role_id = int(row[3])
-                if await self.has_license_expired(expiration_date):
+                if await LicenseHandler.has_license_expired(expiration_date):
                     print(f"Expired license for {member_id}")
                     await self.remove_role(member_id, member_guild_id, licensed_role_id)
 
-    async def has_license_expired(self, expiration_date):
+    @staticmethod
+    async def has_license_expired(expiration_date: datetime) -> bool:
         """
         Check if param expiration date is in past related to the current date.
         If it is in past then license is considered expired.
-        :param expiration_date: PLACEHOLDER, currently always returns FALSE
+        :param expiration_date: datetime object
         :return: True if license is expired, False otherwise
 
         """
-        print(expiration_date)
-        return False
+        if expiration_date < datetime.now():
+            # Expired
+            return True
+        else:
+            return False
 
     async def remove_role(self, member_id, guild_id, licensed_role_id):
         """
@@ -83,7 +89,7 @@ class LicenseHandler(commands.Cog):
         :param license: License to redeem
 
         TODO: Better security (right now license is visible in plain sight in guild)
-
+        TODO: Check if member already has the role (print it's remaining duration?)
         """
         guild = ctx.guild
         if await self.bot.main_db.is_valid_license(license, guild.id):
@@ -91,8 +97,16 @@ class LicenseHandler(commands.Cog):
             # First we get the role linked to the license
             role_id = await self.bot.main_db.get_license_role_id(license)
             role = ctx.guild.get_role(role_id)
-            # Finally we add the role to the user
+            # We add the role to the user, we do this before adding/removing stuff from db
+            # just in case the bot doesn't have perms and throws exception
             await ctx.author.add_roles(role, reason="Redeemed license.")
+            # We add entry to db which we will check if it's expired
+            # First we get the license duration so we can calculate expiration date
+            license_duration = await self.bot.main_db.get_license_duration_hours(license)
+            expiration_date = LicenseHandler.construct_expiration_date(license_duration)
+            # CHECK IF USER HAS ROLE (TODO) OR YOU WILL GET
+            # sqlite3.IntegrityError: UNIQUE constraint failed: LICENSED_MEMBERS.MEMBER_ID, LICENSED_MEMBERS.LICENSED_ROLE_ID
+            await self.bot.main_db.add_new_licensed_member(ctx.author.id, guild.id, expiration_date, role_id)
             # Remove guild license from database
             await self.bot.main_db.delete_license(license)
             # Send message notifying user
@@ -102,14 +116,24 @@ class LicenseHandler(commands.Cog):
 
     @commands.command(aliases=["create"])
     @commands.guild_only()
-    @commands.cooldown(1, 60, commands.BucketType.guild)
+    @commands.cooldown(1, 10, commands.BucketType.guild)
     @commands.has_permissions(administrator=True)
-    async def generate(self, ctx, num: positive_integer = 1, license_role: discord.Role = None):
+    async def generate(self, ctx, num: positive_integer = 1, license_role: discord.Role = None,
+                       license_duration: license_duration = None):
+        """
+        TODO: refactor, enclose every db call in database_handler
+        TODO: allow passing arguments in different order
+
+        """
         if num > 100:
             await ctx.send("Maximum number of licenses to generate at once is 100.")
             return
 
         guild_id = ctx.guild.id
+
+        if license_duration is None:
+            license_duration = await self.bot.main_db.get_default_guild_license_duration_hours(guild_id)
+
         if license_role is None:
             licensed_role_id = await self.bot.main_db.get_default_guild_license_role_id(guild_id)
             license_role = ctx.guild.get_role(licensed_role_id)
@@ -117,9 +141,9 @@ class LicenseHandler(commands.Cog):
                 await self.handle_missing_default_role(ctx, licensed_role_id)
                 return
 
-            generated = await self.bot.main_db.generate_guild_licenses(num, guild_id, licensed_role_id)
+            generated = await self.bot.main_db.generate_guild_licenses(num, guild_id, licensed_role_id, license_duration)
         else:
-            generated = await self.bot.main_db.generate_guild_licenses(num, guild_id, license_role.id)
+            generated = await self.bot.main_db.generate_guild_licenses(num, guild_id, license_role.id, license_duration)
 
         count_generated = len(generated)
         await ctx.send(f"Successfully generated {count_generated} licenses for role {license_role.mention}.")
@@ -129,7 +153,7 @@ class LicenseHandler(commands.Cog):
 
     @commands.command(aliases=["licences", "show"])
     @commands.guild_only()
-    @commands.cooldown(1, 60, commands.BucketType.member)
+    @commands.cooldown(1, 10, commands.BucketType.member)
     @commands.has_permissions(administrator=True)
     async def licenses(self, ctx, num: positive_integer = 10, license_role: discord.Role = None):
         if num > 100:
@@ -168,6 +192,18 @@ class LicenseHandler(commands.Cog):
         await ctx.send(f"Trying to use role with ID {missing_role_id} that was set "
                        f"as default role for guild {ctx.guild.name} but cannot find it"
                        f"anymore in the list of roles!")
+
+    @staticmethod
+    def construct_expiration_date(license_duration_hours: int) -> datetime:
+        """
+         Return format:
+        Y-M-D H:M:S.mS
+        :param license_duration_hours: int hours to be added to current date
+        :return: datetime current time incremented by param license_duration_hours
+
+        """
+        expiration_date = datetime.now() + timedelta(hours=license_duration_hours)
+        return expiration_date
 
 
 def setup(bot):

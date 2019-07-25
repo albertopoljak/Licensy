@@ -1,5 +1,6 @@
 import aiosqlite
 from pathlib import Path
+from datetime import datetime
 from helpers import licence_generator
 
 
@@ -71,7 +72,8 @@ class DatabaseHandler:
                            "("
                            "LICENSE TEXT PRIMARY KEY, "
                            "GUILD_ID TEXT, "
-                           "LICENSED_ROLE_ID TEXT"
+                           "LICENSED_ROLE_ID TEXT, "
+                           "LICENSE_DURATION_HOURS UNSIGNED BIG INT"
                            ")"
                            )
 
@@ -95,20 +97,21 @@ class DatabaseHandler:
         await self.connection.execute(delete_query, (license,))
         await self.connection.commit()
 
-    async def generate_guild_licenses(self, number: int, guild_id: int, default_license_role_id: int) -> list:
+    async def generate_guild_licenses(self, number: int, guild_id: int, license_role_id: int, license_duration: int) -> list:
         """
         :param number: int larger than 0, number of licenses to generate
         :param guild_id: int guild id. Needed to differentiate guilds even though licenses are unique
                          for example to avoid members activating a valid license from one guild into
                          another guild (where linked roles don't exist).
-        :param default_license_role_id: role to link to the license
+        :param license_role_id: role to link to the license
+        :param license_duration: int representing license duration in hours
         :return: list of all generated licenses
 
         """
         licenses = licence_generator.generate(number)
-        query = "INSERT INTO GUILD_LICENSES(LICENSE, GUILD_ID, LICENSED_ROLE_ID) VALUES(?,?,?)"
+        query = "INSERT INTO GUILD_LICENSES(LICENSE, GUILD_ID, LICENSED_ROLE_ID, LICENSE_DURATION_HOURS) VALUES(?,?,?,?)"
         for license in licenses:
-            await self.connection.execute(query, (license, guild_id, default_license_role_id))
+            await self.connection.execute(query, (license, guild_id, license_role_id, license_duration))
         await self.connection.commit()
         return licenses
 
@@ -120,6 +123,17 @@ class DatabaseHandler:
 
         """
         query = "SELECT DEFAULT_LICENSE_ROLE_ID FROM GUILDS WHERE GUILD_ID=?"
+        async with self.connection.execute(query, (guild_id,)) as cursor:
+            row = await cursor.fetchone()
+            return int(row[0])
+
+    async def get_default_guild_license_duration_hours(self, guild_id: int) -> int:
+        """
+        Gets the default license duration from specific guild.
+        :return: int representing hours of license duration
+
+        """
+        query = "SELECT DEFAULT_LICENSE_DURATION_HOURS FROM GUILDS WHERE GUILD_ID=?"
         async with self.connection.execute(query, (guild_id,)) as cursor:
             row = await cursor.fetchone()
             return int(row[0])
@@ -148,11 +162,11 @@ class DatabaseHandler:
 
         """
         licenses = []
-        query = "SELECT LICENSE FROM GUILD_LICENSES WHERE GUILD_ID=? AND LICENSED_ROLE_ID=? LIMIT ?"
+        query = "SELECT LICENSE, LICENSE_DURATION_HOURS FROM GUILD_LICENSES WHERE GUILD_ID=? AND LICENSED_ROLE_ID=? LIMIT ?"
         async with self.connection.execute(query, (guild_id, license_role_id, number)) as cursor:
             rows = await cursor.fetchall()
             # rows format:
-            # [('license1',), ('license2',)]
+            # [('license1', license_duration_int_hours)]
             for row in rows:
                 licenses.append(row[0])
 
@@ -173,3 +187,27 @@ class DatabaseHandler:
             if row is not None:
                 return True
         return False
+
+    async def add_new_licensed_member(self, member_id: int, guild_id: int,
+                                      expiration_date: datetime, licensed_role_id: int):
+        """
+        :param member_id:
+        :param guild_id:
+        :param expiration_date:
+        :param licensed_role_id:
+        :return:
+
+        """
+        query = "INSERT INTO LICENSED_MEMBERS(MEMBER_ID, GUILD_ID, EXPIRATION_DATE, LICENSED_ROLE_ID) VALUES(?,?,?,?)"
+        await self.connection.execute(query, (member_id, guild_id, expiration_date, licensed_role_id))
+        await self.connection.commit()
+
+    async def get_license_duration_hours(self, license):
+        """
+        :param license: It's unique so no need to pass any additional argument
+        :return: int representing license duration in hours
+        """
+        query = "SELECT LICENSE_DURATION_HOURS FROM GUILD_LICENSES WHERE LICENSE=?"
+        async with self.connection.execute(query, (license,)) as cursor:
+            row = await cursor.fetchone()
+            return int(row[0])
