@@ -87,7 +87,7 @@ class DatabaseHandler:
 
     async def delete_license(self, license: str):
         """
-        Called when member has redeemed license.
+        Called for example when member has redeemed license.
         The license is deleted from table GUILD_LICENSES.
         Guild ID is not needed since licenses are unique.
         :param license: license to delete
@@ -95,6 +95,17 @@ class DatabaseHandler:
         """
         delete_query = "DELETE FROM GUILD_LICENSES WHERE LICENSE=?"
         await self.connection.execute(delete_query, (license,))
+        await self.connection.commit()
+
+    async def delete_licensed_member(self, member_id: int, licensed_role_id: int):
+        """
+        Called when member licensed role has expired
+        The member row is deleted from table LICENSED_MEMBERS.
+        MEMBER_ID and LICENSED_ROLE_ID are unique so we only need that to differentiate
+
+        """
+        delete_query = "DELETE FROM LICENSED_MEMBERS WHERE MEMBER_ID=? AND LICENSED_ROLE_ID=?"
+        await self.connection.execute(delete_query, (member_id, licensed_role_id))
         await self.connection.commit()
 
     async def generate_guild_licenses(self, number: int, guild_id: int, license_role_id: int, license_duration: int) -> list:

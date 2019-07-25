@@ -42,6 +42,7 @@ class LicenseHandler(commands.Cog):
                 if await LicenseHandler.has_license_expired(expiration_date):
                     print(f"Expired license for {member_id}")
                     await self.remove_role(member_id, member_guild_id, licensed_role_id)
+                    await self.bot.main_db.delete_licensed_member(member_id, licensed_role_id)
 
     @staticmethod
     async def has_license_expired(expiration_date: datetime) -> bool:
