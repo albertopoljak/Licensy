@@ -31,7 +31,7 @@ class DbTest(commands.Cog):
         await self.bot.main_db.connection.commit()
 
     @commands.command()
-    async def print(self, ctx):
+    async def db(self, ctx):
         """
         Prints entire database
         For testing purposes

@@ -1,3 +1,4 @@
+import asyncio
 from datetime import datetime, timedelta
 from dateutil import parser
 from discord.ext import commands
@@ -12,9 +13,12 @@ class LicenseHandler(commands.Cog):
 
     @commands.Cog.listener()
     async def on_ready(self):
-        print("Bot ready, checking all licenses...")
-        await self.check_all_active_licenses()
-        print("License check done.")
+        while True:
+            print("Checking all licenses...")
+            await self.check_all_active_licenses()
+            print("License check done.")
+            # Sleep 5 minutes
+            await asyncio.sleep(300)
 
     async def check_all_active_licenses(self):
         """
@@ -94,7 +98,6 @@ class LicenseHandler(commands.Cog):
         :param license: License to redeem
 
         TODO: Better security (right now license is visible in plain sight in guild)
-        TODO: Check if member already has the role (print it's remaining duration?)
         """
         guild = ctx.guild
         author = ctx.author
@@ -110,11 +113,10 @@ class LicenseHandler(commands.Cog):
             # table the member id and role id is unique aka can only have uniques roles tied to member id)
             if role in author.roles:
                 # We notify user that he already has the role, we also show him the expiration date
-                # TODO: Expirattion date is for bot timezone! It will be incorrect if the member is in another timezone!
-                # TODO: Instead of showing string just calculate the remaining time in hours as that would be universal.
                 expiration_date = await self.bot.main_db.get_member_license_expiration_date(author.id, role_id)
+                remaining_time = LicenseHandler.remaining_time(expiration_date)
                 await ctx.send(f"{author.mention} you already have an active subscription for the {role.mention} role!"
-                               f"\nIt's valid until {expiration_date}")
+                               f"\nIt's valid for another {remaining_time}")
                 return
             # We add the role to the member, we do this before adding/removing stuff from db
             # just in case the bot doesn't have perms and throws exception (we already
@@ -141,12 +143,11 @@ class LicenseHandler(commands.Cog):
     async def generate(self, ctx, num: positive_integer = 1, license_role: discord.Role = None,
                        license_duration: license_duration = None):
         """
-        TODO: refactor, enclose every db call in database_handler
         TODO: allow passing arguments in different order
 
         """
-        if num > 100:
-            await ctx.send("Maximum number of licenses to generate at once is 100.")
+        if num > 50:
+            await ctx.send("Maximum number of licenses to generate at once is 50.")
             return
 
         guild_id = ctx.guild.id
@@ -171,13 +172,13 @@ class LicenseHandler(commands.Cog):
         await ctx.author.send(f"Generated {count_generated} licenses for role {license_role.name}:\n"
                               f"{dm_content}")
 
-    @commands.command(aliases=["licences", "show"])
+    @commands.command(aliases=["show", "print"])
     @commands.guild_only()
     @commands.cooldown(1, 10, commands.BucketType.member)
     @commands.has_permissions(administrator=True)
     async def licenses(self, ctx, num: positive_integer = 10, license_role: discord.Role = None):
-        if num > 100:
-            await ctx.send("Maximum number of licenses to show at once is 100.")
+        if num > 50:
+            await ctx.send("Maximum number of licenses to show at once is 50.")
             return
 
         guild_id = ctx.guild.id
@@ -224,6 +225,21 @@ class LicenseHandler(commands.Cog):
         """
         expiration_date = datetime.now() + timedelta(hours=license_duration_hours)
         return expiration_date
+
+    @staticmethod
+    def remaining_time(expiration_date: str) -> str:
+        """
+        :param expiration_date: string in format Y-M-D H:M:S.mS
+        :return: timedelta difference between expiration_date and current time
+
+        """
+        # Convert string to datetime
+        expiration_datetime = datetime.strptime(expiration_date, "%Y-%m-%d %H:%M:%S.%f")
+        # timedelta object
+        difference = expiration_datetime-datetime.now()
+        # difference has ms in it so we remove it here for nicer display
+        difference = str(difference).split(".")[0]
+        return difference
 
 
 def setup(bot):
