@@ -222,3 +222,9 @@ class DatabaseHandler:
         async with self.connection.execute(query, (license,)) as cursor:
             row = await cursor.fetchone()
             return int(row[0])
+
+    async def get_member_license_expiration_date(self, member_id: int, licensed_role_id: int) -> str:
+        query = "SELECT EXPIRATION_DATE FROM LICENSED_MEMBERS WHERE MEMBER_ID=? AND LICENSED_ROLE_ID=?"
+        async with self.connection.execute(query, (member_id,licensed_role_id)) as cursor:
+            row = await cursor.fetchone()
+            return row[0]

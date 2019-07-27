@@ -1,5 +1,10 @@
 {
-    "token":"TOKEN_HERE",
-    "default_prefix":"!",
-    "BotStatus":"Credits to Kimchi"
+    "bot_description": "Bot description",
+    "bot_status": "test",
+    "default_prefix": "!",
+    "developers": {
+        "BrainDead": 197918569894379520,
+        "Kimchi": 229317924354129922
+    },
+    "token": ""
 }

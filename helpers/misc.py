@@ -1,19 +1,46 @@
-def positive_integer(integer):
-    """
-    Used as argument converter, example:
-        @commands.command()
-        async def divide(a: int, b: positive_integer):
-    Note that converters are specific to discord py library
-    and will not work with regular python functions, only
-    discord py commands.
+from discord import Embed
+import timeago as timesince
 
-    :param integer: type that can be casted to int
-    :return: int(integer) if param integer is larger that 0
-    :raise: AttributeError if integer is < 1
 
-    """
-    integer = int(integer)
-    if integer < 1:
-        raise AttributeError("Passed argument has to be a integer larger than zero.")
+def construct_load_bar_string(percent, message=None, size=None):
+    if size is None:
+        size = 10
     else:
-        return integer
+        if size < 8:
+            size = 8
+
+    limiters = "|"
+    element_emtpy = "▱"
+    element_full = "▰"
+    constructed = ""
+
+    if percent > 100:
+        percent = 100
+    progress = int(round(percent / size))
+
+    constructed += limiters
+    for x in range(0, progress):
+        constructed += element_full
+    for x in range(progress, size):
+        constructed += element_emtpy
+    constructed += limiters
+    if message is None:
+        constructed = f"{constructed} {percent:.2f}%"
+    else:
+        constructed = f"{constructed} {message}"
+    return constructed
+
+
+def construct_embed(description=None, author=None, **kwargs):
+    embed = Embed(description=description, color=author.top_role.color)
+    if author is not None:
+        embed.set_author(name=author.display_name, icon_url=author.avatar_url)
+
+    for field_name, field_content in kwargs.items():
+        embed.add_field(name=field_name, value=field_content, inline=True)
+
+    return embed
+
+
+def time_ago(target):
+    return timesince.format(target)

@@ -40,7 +40,7 @@ class LicenseHandler(commands.Cog):
                 expiration_date = parser.parse(row[2])
                 licensed_role_id = int(row[3])
                 if await LicenseHandler.has_license_expired(expiration_date):
-                    print(f"Expired license for {member_id}")
+                    print(f"Expired license for member:{member_id} role:{licensed_role_id} guild:{member_guild_id}")
                     await self.remove_role(member_id, member_guild_id, licensed_role_id)
                     await self.bot.main_db.delete_licensed_member(member_id, licensed_role_id)
 
@@ -71,6 +71,8 @@ class LicenseHandler(commands.Cog):
 
         """
         guild = self.bot.get_guild(guild_id)
+        if guild is None:
+            raise Exception(f"Fatal exception. Guild {guild_id} loaded from database cannot be found in bot guilds!")
         member = guild.get_member(member_id)
         member_role = discord.utils.get(member.roles, id=licensed_role_id)
         if member_role is None:
@@ -83,6 +85,8 @@ class LicenseHandler(commands.Cog):
 
     @commands.command(aliases=["activate"])
     @commands.guild_only()
+    @commands.bot_has_permissions(manage_roles=True)
+    @commands.cooldown(1, 5, commands.BucketType.member)
     async def redeem(self, ctx, license):
         """
         License is checked for validity in database, if it's valid get the
@@ -93,25 +97,40 @@ class LicenseHandler(commands.Cog):
         TODO: Check if member already has the role (print it's remaining duration?)
         """
         guild = ctx.guild
+        author = ctx.author
         if await self.bot.main_db.is_valid_license(license, guild.id):
-            # Add role to the user
+            # Adding role to the member requires that role object
             # First we get the role linked to the license
             role_id = await self.bot.main_db.get_license_role_id(license)
             role = ctx.guild.get_role(role_id)
-            # We add the role to the user, we do this before adding/removing stuff from db
-            # just in case the bot doesn't have perms and throws exception
-            await ctx.author.add_roles(role, reason="Redeemed license.")
-            # We add entry to db which we will check if it's expired
+            # Now before doing anything check if member already has the role
+            # Beside for logic (why redeem already existing subscription?) if we don't check this we will get
+            # sqlite3.IntegrityError:UNIQUE constraint failed:LICENSED_MEMBERS.MEMBER_ID,LICENSED_MEMBERS.LICENSED_ROLE_ID
+            # when adding new licensed member to table LICENSED_MEMBERS if member already has the role (because in that
+            # table the member id and role id is unique aka can only have uniques roles tied to member id)
+            if role in author.roles:
+                # We notify user that he already has the role, we also show him the expiration date
+                # TODO: Expirattion date is for bot timezone! It will be incorrect if the member is in another timezone!
+                # TODO: Instead of showing string just calculate the remaining time in hours as that would be universal.
+                expiration_date = await self.bot.main_db.get_member_license_expiration_date(author.id, role_id)
+                await ctx.send(f"{author.mention} you already have an active subscription for the {role.mention} role!"
+                               f"\nIt's valid until {expiration_date}")
+                return
+            # We add the role to the member, we do this before adding/removing stuff from db
+            # just in case the bot doesn't have perms and throws exception (we already
+            # checked for bot_has_permissions(manage_roles=True) but it can happen that bot has
+            # that permission and check is passed but it's still forbidden to alter role for the
+            # member because of it's role hierarchy.) -> will raise Forbidden and be caught by cmd error handler
+            await author.add_roles(role, reason="Redeemed license.")
+            # We add entry to db table LICENSED_MEMBERS (which we will checked periodically for expiration)
             # First we get the license duration so we can calculate expiration date
             license_duration = await self.bot.main_db.get_license_duration_hours(license)
             expiration_date = LicenseHandler.construct_expiration_date(license_duration)
-            # CHECK IF USER HAS ROLE (TODO) OR YOU WILL GET
-            # sqlite3.IntegrityError: UNIQUE constraint failed: LICENSED_MEMBERS.MEMBER_ID, LICENSED_MEMBERS.LICENSED_ROLE_ID
-            await self.bot.main_db.add_new_licensed_member(ctx.author.id, guild.id, expiration_date, role_id)
-            # Remove guild license from database
+            await self.bot.main_db.add_new_licensed_member(author.id, guild.id, expiration_date, role_id)
+            # Remove guild license from database, so it can't be redeemed again
             await self.bot.main_db.delete_license(license)
             # Send message notifying user
-            await ctx.send(f"License valid - adding role {role.mention} to {ctx.author.mention}")
+            await ctx.send(f"License valid - adding role {role.mention} to {author.mention}")
         else:
             await ctx.send("The license key you entered is invalid/deactivated.")
 

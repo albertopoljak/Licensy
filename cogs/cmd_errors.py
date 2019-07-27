@@ -23,6 +23,12 @@ class CmdErrors(commands.Cog):
             return
 
         if isinstance(error, commands.BotMissingPermissions):
+            """
+            Note that this is only for checks of the command , specifically for bot_has_permissions 
+            example @commands.bot_has_permissions(administrator=True)
+            It will not work for example if in command role.edit is called but bot doesn't have manage role permission.
+            In that case a simple "Forbidden" will be raised.
+            """
             missing = [perm.replace("_", " ").replace("guild", "server").title() for perm in error.missing_perms]
             if len(missing) > 2:
                 fmt = "{}, and {}".format("**, **".join(missing[:-1]), missing[-1])
@@ -41,6 +47,10 @@ class CmdErrors(commands.Cog):
             return
 
         if isinstance(error, commands.MissingPermissions):
+            """
+            Note that this is only for checks of the command , example @commands.has_permissions(administrator=True)
+            MissingPermissions is raised if check for permissions of the member who invoked the command has failed.
+            """
             missing = [perm.replace("_", " ").replace("guild", "server").title() for perm in error.missing_perms]
             if len(missing) > 2:
                 fmt = "{}, and {}".format("**, **".join(missing[:-1]), missing[-1])
@@ -66,7 +76,7 @@ class CmdErrors(commands.Cog):
             return
 
         if isinstance(error, Forbidden):
-            await ctx.send("I don't have the required permissions to do this.")
+            await ctx.send("I don't have the required permissions to do this. Check role hierarchy.")
             return
 
         if isinstance(error, RoleNotFound):

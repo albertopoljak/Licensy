@@ -1,3 +1,4 @@
 discord
 python-dateutil
 aiosqlite
+timeago
