@@ -1,14 +1,32 @@
+import asyncio
 import discord
 from discord.ext import commands
 from database_handler import DatabaseHandler
 from config_handler import ConfigHandler
 import sys
 
-startup_extensions = ["licenses", "database_debug", "bot_presence", "cmd_errors"]
-bot = commands.Bot(command_prefix="!")
+config_handler = ConfigHandler()
+database_handler = asyncio.get_event_loop().run_until_complete(DatabaseHandler.create())
 
-# Load and set loaded config as botvar
-bot.config = ConfigHandler()
+startup_extensions = ["licenses",
+                      "database_debug",
+                      "bot_presence",
+                      "guild_admin"
+                      "cmd_errors"]
+
+
+def prefix_callable(bot_client, message):
+    try:
+        # TODO: Store this in list or smth so we don't waste calls to db for each message
+        return bot_client.main_db.get_guild_prefix(message.guild.id)
+    except Exception:
+        return config_handler.get_default_prefix()
+
+
+bot = commands.Bot(command_prefix=prefix_callable, description=config_handler.get_description())
+# Set botvars
+bot.config = config_handler
+bot.main_db = database_handler
 
 if __name__ == "__main__":
     print("Loaded extensions:")
@@ -25,11 +43,6 @@ if __name__ == "__main__":
 @bot.event
 async def on_connect():
     print("\nConnection to Discord established")
-    try:
-        bot.main_db
-    except AttributeError:
-        print("Creating new db connection")
-        bot.main_db = await DatabaseHandler.create()
 
 
 @bot.event

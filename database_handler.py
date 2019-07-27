@@ -20,6 +20,7 @@ class DatabaseHandler:
         self.db_name = db_name
         self.db_backup_prefix = db_backup_prefix
         self.connection = await self._get_connection()
+        print("Connection to database established.")
         return self
 
     def __init__(self):
@@ -84,6 +85,17 @@ class DatabaseHandler:
     @staticmethod
     def _construct_path(db_name: str) -> str:
         return DatabaseHandler.DB_PATH + db_name + DatabaseHandler.DB_EXTENSION
+
+    async def get_guild_prefix(self, guild_id: int) -> str:
+        query = "SELECT PREFIX FROM GUILDS WHERE GUILD_ID=?"
+        async with self.connection.execute(query, (guild_id,)) as cursor:
+            row = await cursor.fetchone()
+            return row[0]
+
+    async def change_guild_prefix(self, guild_id: int, prefix: str):
+        query = "UPDATE GUILDS SET PREFIX=? WHERE GUILD_ID=?"
+        await self.connection.execute(query, (prefix, guild_id))
+        await self.connection.commit()
 
     async def delete_license(self, license: str):
         """
