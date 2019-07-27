@@ -11,7 +11,8 @@ database_handler = asyncio.get_event_loop().run_until_complete(DatabaseHandler.c
 startup_extensions = ["licenses",
                       "database_debug",
                       "bot_presence",
-                      "guild_admin"
+                      "guild_admin",
+                      "bot_information",
                       "cmd_errors"]
 
 

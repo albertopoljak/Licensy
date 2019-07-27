@@ -27,19 +27,19 @@ class ConfigHandler:
         except Exception as e:
             self.logger.critical(f"Can't load json config: {e}")
 
-    def get_description(self):
+    def get_description(self) -> str:
         return self.get_key("bot_description")
 
-    def get_bot_status(self):
+    def get_bot_status(self) -> str:
         return self.get_key("bot_status")
 
-    def get_default_prefix(self):
+    def get_default_prefix(self) -> str:
         return self.get_key("default_prefix")
 
-    def get_developers(self):
+    def get_developers(self) -> dict:
         return self.get_key("developers")
 
-    def get_token(self):
+    def get_token(self) -> str:
         return self.get_key("token")
 
     def get_key(self, key):
