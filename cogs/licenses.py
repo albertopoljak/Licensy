@@ -10,10 +10,16 @@ from helpers.errors import RoleNotFound
 class LicenseHandler(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+        self.bot.loop.create_task(self.license_check_loop())
 
-    @commands.Cog.listener()
-    async def on_ready(self):
+    async def license_check_loop(self):
         while True:
+            # Wait until the event is set.
+            # (if the event is set, return True immediately, otherwise block until task calls set())
+            # wait_until_ready is set only once, when bot internal cache is loaded.
+            # Need to wait because on startup if license is expired functions here will try
+            # to get guild/member/role objects before the bot is even loaded thus resulting in exception.
+            await self.bot.wait_until_ready()
             print("Checking all licenses...")
             await self.check_all_active_licenses()
             print("License check done.")
