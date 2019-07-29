@@ -27,7 +27,8 @@ class DbTest(commands.Cog):
 
         insert_liceses_query = "INSERT INTO GUILD_LICENSES(LICENSE, GUILD_ID, LICENSED_ROLE_ID) VALUES(?,?,?)"
         for license in licenses:
-            await self.bot.main_db.connection.execute(insert_liceses_query, (license, guild_id, default_license_role_id))
+            await self.bot.main_db.connection.execute(insert_liceses_query,
+                                                      (license, guild_id, default_license_role_id))
         await self.bot.main_db.connection.commit()
 
     @commands.command()

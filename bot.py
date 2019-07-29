@@ -1,9 +1,10 @@
+import traceback
 import asyncio
+import sys
 import discord
 from discord.ext import commands
 from database_handler import DatabaseHandler
 from config_handler import ConfigHandler
-import sys
 
 config_handler = ConfigHandler()
 database_handler = asyncio.get_event_loop().run_until_complete(DatabaseHandler.create())
@@ -39,6 +40,7 @@ if __name__ == "__main__":
         except Exception as e:
             exc = f"{type(e).__name__}: {e}"
             print(f"{exc} Failed to load extension {cog_path}")
+            traceback.print_exc()
 
 
 @bot.event

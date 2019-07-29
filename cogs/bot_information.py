@@ -6,12 +6,15 @@ from datetime import datetime
 from discord.ext import commands
 from helpers.misc import construct_load_bar_string, construct_embed, time_ago
 
-uptime_start_time = datetime.now()
+up_time_start_time = datetime.now()
 
 
 class Information(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+        self.developers = []
+        # Fetch developers only once, at start
+        self.bot.loop.create_task(self.set_developers())
         self.process = psutil.Process(os.getpid())
 
     @commands.command()
@@ -24,27 +27,20 @@ class Information(commands.Cog):
     @commands.command()
     async def invite(self, ctx):
         invite_link = discord.utils.oauth_url(self.bot.user.id)
-        await ctx.send(f"**{ctx.author.name}**, use this URL to invite me\n<{invite_link}>")
+        await ctx.send(f"**{ctx.author.mention}**, use this URL to invite me\n<{invite_link}>")
 
     @commands.command(aliases=['info', 'stats', 'status', 'server'])
     @commands.cooldown(1, 10, commands.BucketType.user)
     async def about(self, ctx):
-        # TODO: Refactor mega method
-        global uptime_start_time
-        last_boot = time_ago(datetime.now() - uptime_start_time)
+        global up_time_start_time
+        last_boot = time_ago(datetime.now() - up_time_start_time)
 
-        developer_ids = self.bot.config.get_developers().values()
-        developers = []
-        for value_id in developer_ids:
-            developer = await self.bot.fetch_user(value_id)
-            developers.append(developer.mention)
-
-        server_count = f"{len(ctx.bot.guilds)}"
+        server_count = len(ctx.bot.guilds)
 
         avg_members = round(len(self.bot.users) / len(self.bot.guilds))
         avg_members_string = f"{avg_members} users/server"
 
-        commands_loaded = len([x.name for x in self.bot.commands])
+        commands_loaded = len(self.bot.commands)
 
         bot_ram_usage = self.process.memory_full_info().rss / 1024 ** 2
         bot_ram_usage = f"{bot_ram_usage:.2f} MB"
@@ -86,7 +82,7 @@ class Information(commands.Cog):
                         f"\n**Links:\n**" + footer
 
         fields = {"Last boot": last_boot,
-                  "Developers": "\n".join(developers),
+                  "Developers": "\n".join(self.developers),
                   "Library": "discord.py",
                   "Servers": server_count,
                   "Average users:": avg_members_string,
@@ -95,6 +91,22 @@ class Information(commands.Cog):
                   }
         embed = construct_embed(author=ctx.me, **fields)
         await ctx.send(embed=embed)
+
+    async def set_developers(self):
+        """
+        Sets self.developers as a list of user mentions.
+        Users represent developers loaded from config.
+
+        """
+        # Absolutely needed, otherwise we will try to fetch_user
+        # before the bot is connected to discord thus getting an exception
+        await self.bot.wait_until_ready()
+        developer_ids = self.bot.config.get_developers().values()
+        developers = []
+        for value_id in developer_ids:
+            developer = await self.bot.fetch_user(value_id)
+            developers.append(developer.mention)
+        self.developers = developers
 
 
 def setup(bot):

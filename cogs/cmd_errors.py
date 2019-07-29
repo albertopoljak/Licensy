@@ -1,6 +1,6 @@
-import discord
 import traceback
 import math
+import discord
 from discord.ext import commands
 from discord.errors import Forbidden
 from helpers.errors import RoleNotFound

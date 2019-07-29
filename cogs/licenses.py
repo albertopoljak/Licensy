@@ -34,7 +34,7 @@ class LicenseHandler(commands.Cog):
 
         TODO: add event on_guild_remove
 
-        TODO: Move query to database handler, use yield?
+        TODO: Move query to database handler
 
         """
         async with self.bot.main_db.connection.execute("SELECT * FROM LICENSED_MEMBERS") as cursor:
@@ -108,7 +108,8 @@ class LicenseHandler(commands.Cog):
             role = ctx.guild.get_role(role_id)
             # Now before doing anything check if member already has the role
             # Beside for logic (why redeem already existing subscription?) if we don't check this we will get
-            # sqlite3.IntegrityError:UNIQUE constraint failed:LICENSED_MEMBERS.MEMBER_ID,LICENSED_MEMBERS.LICENSED_ROLE_ID
+            # sqlite3.IntegrityError:
+            #   UNIQUE constraint failed:LICENSED_MEMBERS.MEMBER_ID,LICENSED_MEMBERS.LICENSED_ROLE_ID
             # when adding new licensed member to table LICENSED_MEMBERS if member already has the role (because in that
             # table the member id and role id is unique aka can only have uniques roles tied to member id)
             if role in author.roles:
