@@ -93,6 +93,14 @@ class LicenseHandler(commands.Cog):
             await member.send(f"Your license in guild **{guild}** has expired "
                               f"for the following role: **{member_role}** ")
 
+    @commands.Cog.listener()
+    async def on_guild_join(self, guild):
+        guild_id = guild.id
+        default_prefix = self.bot.config.get_default_prefix()
+        insert_guild_query = "INSERT INTO GUILDS(GUILD_ID, PREFIX) VALUES(?,?)"
+        await self.bot.main_db.connection.execute(insert_guild_query, (guild_id, default_prefix))
+        await self.bot.main_db.connection.commit()
+
     @commands.command(aliases=["activate"])
     @commands.guild_only()
     @commands.bot_has_permissions(manage_roles=True)

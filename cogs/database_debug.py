@@ -22,8 +22,10 @@ class DbTest(commands.Cog):
         default_license_role_id = default_license_role.id
         licenses = licence_generator.generate(3)
 
-        insert_guild_query = "INSERT INTO GUILDS(GUILD_ID, PREFIX, DEFAULT_LICENSE_ROLE_ID) VALUES(?,?,?)"
-        await self.bot.main_db.connection.execute(insert_guild_query, (guild_id, guild_prefix, default_license_role_id))
+        # insert_guild_query = "INSERT INTO GUILDS(GUILD_ID, PREFIX, DEFAULT_LICENSE_ROLE_ID) VALUES(?,?,?)"
+        # await self.bot.main_db.connection.execute(insert_guild_query, (guild_id, guild_prefix, default_license_role_id))
+        insert_guild_query = "INSERT INTO GUILDS(GUILD_ID, PREFIX) VALUES(?,?)"
+        await self.bot.main_db.connection.execute(insert_guild_query, (guild_id, guild_prefix))
 
         insert_liceses_query = "INSERT INTO GUILD_LICENSES(LICENSE, GUILD_ID, LICENSED_ROLE_ID) VALUES(?,?,?)"
         for license in licenses:

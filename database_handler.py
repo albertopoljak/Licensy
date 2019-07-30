@@ -2,6 +2,7 @@ import aiosqlite
 from pathlib import Path
 from datetime import datetime
 from helpers import licence_generator
+from helpers.errors import DefaultGuildRoleNotSet
 
 
 class DatabaseHandler:
@@ -104,12 +105,16 @@ class DatabaseHandler:
         Gets the default license role id from specific guild.
         This role will be used as link when no role argument is passed in 'generate' command
         :return: int default license role id
+        :raise: DefaultGuildRoleNotSet if it's None
 
         """
         query = "SELECT DEFAULT_LICENSE_ROLE_ID FROM GUILDS WHERE GUILD_ID=?"
         async with self.connection.execute(query, (guild_id,)) as cursor:
             row = await cursor.fetchone()
-            return int(row[0])
+            try:
+                return int(row[0])
+            except TypeError:
+                raise DefaultGuildRoleNotSet("Default guild license not set!")
 
     async def get_default_guild_license_duration_hours(self, guild_id: int) -> int:
         """

@@ -17,10 +17,10 @@ startup_extensions = ["licenses",
                       "cmd_errors"]
 
 
-def prefix_callable(bot_client, message):
-    try:
+async def prefix_callable(bot_client, message):
+    try: 
         # TODO: Store this in list or smth so we don't waste calls to db for each message
-        return bot_client.main_db.get_guild_prefix(message.guild.id)
+        return await bot_client.main_db.get_guild_prefix(message.guild.id)
     except Exception:
         return config_handler.get_default_prefix()
 
@@ -77,6 +77,7 @@ async def on_error(event: str, *args, **kwargs):
     exc_type = exc_info[0].__name__ if exc_info[0] is not None else "<no exception>"
     exc_what = str(exc_info[1]) if exc_info[1] is not None else ""
     print(f"Uncaught {exc_type} in '{event}': {exc_what}")
+    traceback.print_exc()
 
 
 bot.run(bot.config.get_token())
