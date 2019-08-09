@@ -2,7 +2,7 @@ import discord
 from discord.ext import commands
 
 
-class BotPresence(commands.Cog):
+class BotOwnerCommands(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
@@ -37,6 +37,12 @@ class BotPresence(commands.Cog):
         await ctx.send(f"Successfully set presence to **Watching {movie}**.")
         self.bot.config.update_status(movie)
 
+    @commands.command(hidden=True)
+    @commands.is_owner()
+    async def reload_config(self, ctx):
+        self.bot.config.reload_config()
+        await ctx.send("Successfully reloaded config.")
+
 
 def setup(bot):
-    bot.add_cog(BotPresence(bot))
+    bot.add_cog(BotOwnerCommands(bot))

@@ -68,7 +68,7 @@ class DatabaseHandler:
         await conn.execute("CREATE TABLE GUILDS "
                            "("
                            "GUILD_ID TEXT PRIMARY KEY, "
-                           "PREFIX TEXT CHECK(PREFIX IS NULL OR LENGTH(PREFIX) <= 3), "
+                           "PREFIX TEXT CHECK(PREFIX IS NULL OR LENGTH(PREFIX) <= 5), "
                            "ENABLE_LOG_CHANNEL TINYINT DEFAULT 0, "
                            "LOG_CHANNEL_ID TEXT, "
                            "DEFAULT_LICENSE_ROLE_ID TEXT, "
@@ -108,6 +108,14 @@ class DatabaseHandler:
             return row[0]
 
     async def change_guild_prefix(self, guild_id: int, prefix: str):
+        """
+        This will always print traceback as it's tied to sqlite exception handler.
+        Doesn't matter, just don't get confused when you capture the exception but it still get's
+        printed to stdout.
+        :param guild_id: int id of guild to change the prefix to in the database
+        :param prefix: str prefix to change to. Length is limited by table GUILDS layout (max 5 chars)
+        :raise: IntegrityError if the prefix has too many chars (max 5)
+        """
         query = "UPDATE GUILDS SET PREFIX=? WHERE GUILD_ID=?"
         await self.connection.execute(query, (prefix, guild_id))
         await self.connection.commit()

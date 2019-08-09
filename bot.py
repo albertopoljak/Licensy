@@ -11,7 +11,7 @@ database_handler = asyncio.get_event_loop().run_until_complete(DatabaseHandler.c
 
 startup_extensions = ["licenses",
                       "database_debug",
-                      "bot_presence",
+                      "bot_owner_commands",
                       "guild_admin",
                       "bot_information",
                       "cmd_errors"]
@@ -21,8 +21,11 @@ async def prefix_callable(bot_client, message):
     try: 
         # TODO: Store this in list or smth so we don't waste calls to db for each message
         return await bot_client.main_db.get_guild_prefix(message.guild.id)
-    except Exception:
-        return config_handler.get_default_prefix()
+    except Exception as err:
+        default_prefix = config_handler.get_default_prefix()
+        print(f"Can't get guild[{message.guild.id},{message.guild.name}] prefix. Error:{err}. "
+              f"Using '{default_prefix}' as prefix.")
+        return default_prefix
 
 
 bot = commands.Bot(command_prefix=prefix_callable, description=config_handler.get_description())

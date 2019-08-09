@@ -43,8 +43,13 @@ class CmdErrors(commands.Cog):
             return
 
         if isinstance(error, commands.CommandOnCooldown):
-            await ctx.send(f"This command is on cooldown, please retry in {math.ceil(error.retry_after)}s.")
-            return
+            # Cooldowns are ignored for developers
+            if ctx.message.author.id in self.bot.config.get_developers().values():
+                await ctx.reinvoke()
+                return
+            else:
+                await ctx.send(f"This command is on cooldown, please retry in {math.ceil(error.retry_after)}s.")
+                return
 
         if isinstance(error, commands.MissingPermissions):
             """

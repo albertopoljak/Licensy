@@ -1,3 +1,4 @@
+from aiosqlite import IntegrityError
 from discord.ext import commands
 
 
@@ -10,7 +11,12 @@ class BotPresence(commands.Cog):
     @commands.has_permissions(administrator=True)
     @commands.cooldown(1, 60, commands.BucketType.guild)
     async def prefix(self, ctx, *, prefix):
-        await self.bot.main_db.change_guild_prefix(ctx.guild.id, prefix)
+        try:
+            await self.bot.main_db.change_guild_prefix(ctx.guild.id, prefix)
+        except IntegrityError:
+            await ctx.send("Prefix is too long! Maximum of 5 characters please.")
+            return
+
         await ctx.send(f"Successfully changed prefix to **{prefix}**")
 
 

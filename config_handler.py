@@ -27,6 +27,14 @@ class ConfigHandler:
         except Exception as e:
             self.logger.critical(f"Can't load json config: {e}")
 
+    def reload_config(self):
+        """
+        Reloads config.
+        If you change the config manually while the bot is running you need to call this method
+        so the values are updated in memory.
+        """
+        self.config = self._load_config()
+
     def get_description(self) -> str:
         return self.get_key("bot_description")
 
