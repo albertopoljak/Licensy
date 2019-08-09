@@ -2,6 +2,7 @@ import asyncio
 from datetime import datetime, timedelta
 from dateutil import parser
 from discord.ext import commands
+from discord.errors import Forbidden
 import discord.utils
 from helpers.converters import positive_integer, license_duration
 from helpers.errors import RoleNotFound
@@ -53,6 +54,7 @@ class LicenseHandler(commands.Cog):
                     print(f"Expired license for member:{member_id} role:{licensed_role_id} guild:{member_guild_id}")
                     await self.remove_role(member_id, member_guild_id, licensed_role_id)
                     await self.bot.main_db.delete_licensed_member(member_id, licensed_role_id)
+                    print(f"Role {licensed_role_id} successfully removed from member:{member_id}")
 
     @staticmethod
     async def has_license_expired(expiration_date: datetime) -> bool:
@@ -90,8 +92,12 @@ class LicenseHandler(commands.Cog):
                                f"Role not found ")
         else:
             await member.remove_roles(member_role)
-            await member.send(f"Your license in guild **{guild}** has expired "
-                              f"for the following role: **{member_role}** ")
+            try:
+                await member.send(f"Your license in guild **{guild}** has expired "
+                                  f"for the following role: **{member_role}** ")
+            except Forbidden:
+                # Ignore if user has blocked DM
+                pass
 
     @commands.Cog.listener()
     async def on_guild_join(self, guild):
@@ -182,9 +188,10 @@ class LicenseHandler(commands.Cog):
             generated = await self.bot.main_db.generate_guild_licenses(num, guild_id, license_role.id, license_duration)
 
         count_generated = len(generated)
-        await ctx.send(f"Successfully generated {count_generated} licenses for role {license_role.mention}.")
+        await ctx.send(f"Successfully generated {count_generated} licenses for role {license_role.mention}.\n"
+                       f"Sending generated licenses in DM for quick use.")
         dm_content = "\n".join(generated)
-        await ctx.author.send(f"Generated {count_generated} licenses for role {license_role.name}:\n"
+        await ctx.author.send(f"Generated {count_generated} licenses for role {license_role.name} in guild **{ctx.guild.name}**:\n"
                               f"{dm_content}")
 
     @commands.command(aliases=["show", "print"])
@@ -192,6 +199,10 @@ class LicenseHandler(commands.Cog):
     @commands.cooldown(1, 10, commands.BucketType.member)
     @commands.has_permissions(administrator=True)
     async def licenses(self, ctx, num: positive_integer = 10, license_role: discord.Role = None):
+        """
+        TODO: allow passing arguments in different order
+
+        """
         if num > 50:
             await ctx.send("Maximum number of licenses to show at once is 50.")
             return
@@ -207,7 +218,7 @@ class LicenseHandler(commands.Cog):
         else:
             to_show = await self.bot.main_db.get_guild_licenses(num, guild_id, license_role.id)
 
-        dm_title = f"Showing licenses for role {license_role.name}:"
+        dm_title = f"Showing licenses for role **{license_role.name}** in guild **{ctx.guild.name}**:"
         dm_content = "\n".join(to_show)
         await ctx.author.send(f"{dm_title}\n"
                               f"{dm_content}")

@@ -20,6 +20,7 @@ class CmdErrors(commands.Cog):
         error = getattr(error, "original", error)
 
         if isinstance(error, commands.CommandNotFound):
+            await ctx.send("Command not found.")
             return
 
         if isinstance(error, commands.BotMissingPermissions):
@@ -45,7 +46,12 @@ class CmdErrors(commands.Cog):
         if isinstance(error, commands.CommandOnCooldown):
             # Cooldowns are ignored for developers
             if ctx.message.author.id in self.bot.config.get_developers().values():
-                await ctx.reinvoke()
+                # reinvoke() bypasses error handlers so we surround it with try/catch and just
+                # send errors to ctx
+                try:
+                    await ctx.reinvoke()
+                except Exception as e:
+                    await ctx.send(e)
                 return
             else:
                 await ctx.send(f"This command is on cooldown, please retry in {math.ceil(error.retry_after)}s.")
@@ -66,7 +72,7 @@ class CmdErrors(commands.Cog):
             return
 
         if isinstance(error, commands.UserInputError):
-            await ctx.send("Invalid command input.")
+            await ctx.send(f"Invalid command input: {error}")
             return
 
         if isinstance(error, commands.NoPrivateMessage):
@@ -81,7 +87,16 @@ class CmdErrors(commands.Cog):
             return
 
         if isinstance(error, Forbidden):
-            await ctx.send("I don't have the required permissions to do this. Check role hierarchy.")
+            # 403 FORBIDDEN (error code: 50013): Missing Permissions
+            if error.code == 50013:
+                await ctx.send(f"{error}.\n"
+                               f"Check role hierarchy - I can only manage roles below me.")
+            # 403 FORBIDDEN (error code: 50007): Cannot send messages to this user.
+            elif error.code == 50007:
+                await ctx.send(f"{error}.\n"
+                               f"Hint: Disabled DMs?")
+            else:
+                await ctx.send(f"{error}.")
             return
 
         if isinstance(error, RoleNotFound):

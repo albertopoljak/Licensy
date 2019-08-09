@@ -6,6 +6,11 @@ class BotOwnerCommands(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
+    # TODO:
+    # @commands.check(my_function)
+    # # Check against your own function that returns those able to use your command
+    # instead of is_owner, use my_function to check multiple developers
+
     @commands.command(hidden=True)
     @commands.is_owner()
     async def playing(self, ctx, *, game):
