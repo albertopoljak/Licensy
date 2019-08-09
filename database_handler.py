@@ -1,3 +1,4 @@
+import os
 import aiosqlite
 from pathlib import Path
 from datetime import datetime
@@ -40,11 +41,22 @@ class DatabaseHandler:
             return conn
         else:
             print("Database not found! Creating fresh ...")
+            DatabaseHandler._check_directories()
             return await DatabaseHandler._create_database(path)
 
     @staticmethod
     def _construct_path(db_name: str) -> str:
         return DatabaseHandler.DB_PATH + db_name + DatabaseHandler.DB_EXTENSION
+
+    @staticmethod
+    def _check_directories():
+        """
+        Can't create database file if the directory doesn't exist.
+        Creates directory for databases if it doesn't exist.
+        """
+        if not Path(DatabaseHandler.DB_PATH).is_dir():
+            print(f"Creating directory {DatabaseHandler.DB_PATH}")
+            os.mkdir(DatabaseHandler.DB_PATH)
 
     @staticmethod
     async def _create_database(path: str) -> aiosqlite.core.Connection:
