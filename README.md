@@ -42,9 +42,9 @@ Made with security in mind and to work independently with multiple guilds.
 
 ## Example usage
 
-Currently in development. See [Quickstart](##Quickstart)
+Currently in development. See [Quickstart](#quickstart)
 
-## Quickstart
+## Quickstart 
 
 Start the bot, it will create database.
 

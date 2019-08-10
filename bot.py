@@ -22,8 +22,12 @@ async def prefix_callable(bot_client, message):
         # TODO: Store this in list or smth so we don't waste calls to db for each message
         return await bot_client.main_db.get_guild_prefix(message.guild.id)
     except Exception as err:
+        """
+        If fetching prefix from database errors just use the default prefix.
+        This is also used in DMs where the guild is None
+        """
         default_prefix = config_handler.get_default_prefix()
-        print(f"Can't get guild[{message.guild.id},{message.guild.name}] prefix. Error:{err}. "
+        print(f"Can't get guild {message.guild} prefix. Error:{err}. "
               f"Using '{default_prefix}' as prefix.")
         return default_prefix
 
