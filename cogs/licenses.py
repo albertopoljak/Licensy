@@ -162,7 +162,7 @@ class LicenseHandler(commands.Cog):
     @commands.cooldown(1, 10, commands.BucketType.guild)
     @commands.has_permissions(administrator=True)
     async def generate(self, ctx, num: positive_integer = 1, license_role: discord.Role = None,
-                       license_duration: license_duration = None):
+                       *, license_duration: license_duration = None):
         """
         TODO: allow passing arguments in different order
 
@@ -188,10 +188,12 @@ class LicenseHandler(commands.Cog):
             generated = await self.bot.main_db.generate_guild_licenses(num, guild_id, license_role.id, license_duration)
 
         count_generated = len(generated)
-        await ctx.send(f"Successfully generated {count_generated} licenses for role {license_role.mention}.\n"
+        await ctx.send(f"Successfully generated {count_generated} licenses for role {license_role.mention}"
+                       f" in duration of {license_duration}h.\n"
                        f"Sending generated licenses in DM for quick use.")
         dm_content = "\n".join(generated)
-        await ctx.author.send(f"Generated {count_generated} licenses for role {license_role.name} in guild **{ctx.guild.name}**:\n"
+        await ctx.author.send(f"Generated {count_generated} licenses for role **{license_role.name}** in "
+                              f"guild **{ctx.guild.name}** in duration of {license_duration}h:\n"
                               f"{dm_content}")
 
     @commands.command(aliases=["show", "print"])
