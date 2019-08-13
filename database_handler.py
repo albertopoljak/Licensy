@@ -1,9 +1,12 @@
-import os
+import logging
 import aiosqlite
 from pathlib import Path
 from datetime import datetime
+from helpers import misc
 from helpers import licence_generator
 from helpers.errors import DefaultGuildRoleNotSet
+
+logger = logging.getLogger(__name__)
 
 
 class DatabaseHandler:
@@ -22,7 +25,7 @@ class DatabaseHandler:
         self.db_name = db_name
         self.db_backup_prefix = db_backup_prefix
         self.connection = await self._get_connection()
-        print("Connection to database established.")
+        logger.info("Connection to database established.")
         return self
 
     def __init__(self):
@@ -40,23 +43,13 @@ class DatabaseHandler:
             conn = await aiosqlite.connect(path)
             return conn
         else:
-            print("Database not found! Creating fresh ...")
-            DatabaseHandler._check_directories()
+            logger.warning("Database not found! Creating fresh ...")
+            misc.check_create_directory(DatabaseHandler.DB_PATH)
             return await DatabaseHandler._create_database(path)
 
     @staticmethod
     def _construct_path(db_name: str) -> str:
         return DatabaseHandler.DB_PATH + db_name + DatabaseHandler.DB_EXTENSION
-
-    @staticmethod
-    def _check_directories():
-        """
-        Can't create database file if the directory doesn't exist.
-        Creates directory for databases if it doesn't exist.
-        """
-        if not Path(DatabaseHandler.DB_PATH).is_dir():
-            print(f"Creating directory {DatabaseHandler.DB_PATH}")
-            os.mkdir(DatabaseHandler.DB_PATH)
 
     @staticmethod
     async def _create_database(path: str) -> aiosqlite.core.Connection:
@@ -96,7 +89,7 @@ class DatabaseHandler:
                            )
 
         await conn.commit()
-        print("Database successfully created!")
+        logger.info("Database successfully created!")
         return conn
 
     # TABLE GUILDS #######################################################################

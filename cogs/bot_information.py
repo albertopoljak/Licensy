@@ -1,11 +1,13 @@
+import os
 import time
 import psutil
-import os
 import discord
+import logging
 from datetime import datetime
 from discord.ext import commands
 from helpers.misc import construct_load_bar_string, construct_embed, time_ago
 
+logger = logging.getLogger(__name__)
 up_time_start_time = datetime.now()
 
 
@@ -32,7 +34,6 @@ class Information(commands.Cog):
     @commands.command(aliases=['info', 'stats', 'status', 'server'])
     @commands.cooldown(1, 10, commands.BucketType.user)
     async def about(self, ctx):
-        global up_time_start_time
         last_boot = time_ago(datetime.now() - up_time_start_time)
 
         server_count = len(ctx.bot.guilds)
@@ -106,7 +107,11 @@ class Information(commands.Cog):
         for value_id in developer_ids:
             developer = await self.bot.fetch_user(value_id)
             developers.append(developer.mention)
-        self.developers = developers
+        if not developers:
+            logger.critical("Developers ({developer_ids}) could not be found on discord!")
+            self.developers = ["Unknown"]
+        else:
+            self.developers = developers
 
 
 def setup(bot):

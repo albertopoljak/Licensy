@@ -1,9 +1,12 @@
-import traceback
 import math
+import logging
+import traceback
 import discord
 from discord.ext import commands
 from discord.errors import Forbidden
 from helpers.errors import RoleNotFound, DefaultGuildRoleNotSet
+
+logger = logging.getLogger(__name__)
 
 
 class CmdErrors(commands.Cog):
@@ -109,8 +112,8 @@ class CmdErrors(commands.Cog):
 
         error_type = type(error)
         exception_message = f"Ignoring {error_type} exception in command '{ctx.command}':{error}"
-        print(f"{exception_message} \n,traceback:")
-        traceback.print_exception(error_type, error, error.__traceback__)
+        logger.warning(f"{exception_message} \n,traceback:")
+        logger.warning(traceback.format_exc())
         # TODO Send msg in log channel
         await ctx.send(f"Uncaught exception **{error.__class__.__name__}** happened while processing **{ctx.command}**")
 

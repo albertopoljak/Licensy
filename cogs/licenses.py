@@ -1,4 +1,5 @@
 import asyncio
+import logging
 from datetime import datetime, timedelta
 from dateutil import parser
 from discord.ext import commands
@@ -6,6 +7,8 @@ from discord.errors import Forbidden
 import discord.utils
 from helpers.converters import positive_integer, license_duration
 from helpers.errors import RoleNotFound
+
+logger = logging.getLogger(__name__)
 
 
 class LicenseHandler(commands.Cog):
@@ -21,9 +24,9 @@ class LicenseHandler(commands.Cog):
             # Need to wait because on startup if license is expired functions here will try
             # to get guild/member/role objects before the bot is even loaded thus resulting in exception.
             await self.bot.wait_until_ready()
-            print("Checking all licenses...")
+            logger.info("Checking all licenses...")
             await self.check_all_active_licenses()
-            print("License check done.")
+            logger.info("License check done.")
             # Sleep 5 minutes
             await asyncio.sleep(300)
 
@@ -51,10 +54,10 @@ class LicenseHandler(commands.Cog):
                 expiration_date = parser.parse(row[2])
                 licensed_role_id = int(row[3])
                 if await LicenseHandler.has_license_expired(expiration_date):
-                    print(f"Expired license for member:{member_id} role:{licensed_role_id} guild:{member_guild_id}")
+                    logger.info(f"Expired license for member:{member_id} role:{licensed_role_id} guild:{member_guild_id}")
                     await self.remove_role(member_id, member_guild_id, licensed_role_id)
                     await self.bot.main_db.delete_licensed_member(member_id, licensed_role_id)
-                    print(f"Role {licensed_role_id} successfully removed from member:{member_id}")
+                    logger.info(f"Role {licensed_role_id} successfully removed from member:{member_id}")
 
     @staticmethod
     async def has_license_expired(expiration_date: datetime) -> bool:

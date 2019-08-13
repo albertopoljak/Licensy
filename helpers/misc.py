@@ -1,5 +1,10 @@
+import os
+import logging
+from pathlib import Path
 from discord import Embed
 import timeago as timesince
+
+logger = logging.getLogger(__name__)
 
 
 def construct_load_bar_string(percent, message=None, size=None):
@@ -44,3 +49,13 @@ def construct_embed(description=None, author=None, **kwargs):
 
 def time_ago(target):
     return timesince.format(target)
+
+
+def check_create_directory(directory_path: str):
+    """
+    Creates directory if it doesn't exist
+    :param directory_path: str example 'dir/"
+    """
+    if not Path(directory_path).is_dir():
+        logger.info(f"Creating directory {directory_path}")
+        os.mkdir(directory_path)

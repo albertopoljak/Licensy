@@ -1,10 +1,17 @@
 import traceback
+import logging
 import asyncio
 import sys
 import discord
 from discord.ext import commands
 from database_handler import DatabaseHandler
 from config_handler import ConfigHandler
+from helpers import logger_handlers
+
+root_logger = logging.getLogger()
+root_logger.setLevel(logging.INFO)
+root_logger.addHandler(logger_handlers.get_console_handler())
+root_logger.addHandler(logger_handlers.get_file_handler())
 
 config_handler = ConfigHandler()
 database_handler = asyncio.get_event_loop().run_until_complete(DatabaseHandler.create())
@@ -27,49 +34,48 @@ async def prefix_callable(bot_client, message):
         This is also used in DMs where the guild is None
         """
         default_prefix = config_handler.get_default_prefix()
-        print(f"Can't get guild {message.guild} prefix. Error:{err}. "
-              f"Using '{default_prefix}' as prefix.")
+        root_logger.error(f"Can't get guild {message.guild} prefix. Error:{err}. "
+                          f"Using '{default_prefix}' as prefix.")
         return default_prefix
 
 
 bot = commands.Bot(command_prefix=prefix_callable, description=config_handler.get_description())
-# Set botvars
 bot.config = config_handler
 bot.main_db = database_handler
 
 if __name__ == "__main__":
-    print("Loaded extensions:")
+    root_logger.info("Loaded extensions:")
     for extension in startup_extensions:
         cog_path = f"cogs.{extension}"
         try:
             bot.load_extension(cog_path)
-            print(f"\t{cog_path}")
+            root_logger.info(f"{cog_path}")
         except Exception as e:
             exc = f"{type(e).__name__}: {e}"
-            print(f"{exc} Failed to load extension {cog_path}")
-            traceback.print_exc()
+            root_logger.error(f"{exc} Failed to load extension {cog_path}")
+            root_logger.error(traceback.format_exc())
 
 
 @bot.event
 async def on_connect():
-    print("\nConnection to Discord established")
+    root_logger.info("Connection to Discord established")
 
 
 @bot.event
 async def on_guild_remove(guild):
-    print(f"Left guild {guild.name}")
+    root_logger.info(f"Left guild {guild.name}")
 
 
 @bot.event
 async def on_disconnect():
-    print("Connection lost")
+    root_logger.warning("Connection lost")
 
 
 @bot.event
 async def on_ready():
-    print(f"\nLogged in as: {bot.user.name} - {bot.user.id}"
-          f"\nDiscordPy version: {discord.__version__}\n")
-    print("Successfully logged in and booted...!\n")
+    root_logger.info(f"Logged in as: {bot.user.name} - {bot.user.id}"
+                     f"\tDiscordPy version: {discord.__version__}")
+    root_logger.info("Successfully logged in and booted...!")
 
 
 @bot.event
@@ -83,8 +89,8 @@ async def on_error(event: str, *args, **kwargs):
     exc_info = sys.exc_info()
     exc_type = exc_info[0].__name__ if exc_info[0] is not None else "<no exception>"
     exc_what = str(exc_info[1]) if exc_info[1] is not None else ""
-    print(f"Uncaught {exc_type} in '{event}': {exc_what}")
-    traceback.print_exc()
+    root_logger.critical(f"Uncaught {exc_type} in '{event}': {exc_what}")
+    root_logger.critical(traceback.format_exc())
 
 
 bot.run(bot.config.get_token())
