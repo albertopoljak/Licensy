@@ -209,7 +209,7 @@ class DatabaseHandler:
         :return: list of all generated licenses
 
         """
-        licenses = licence_generator.generate(number)
+        licenses = licence_generator.generate_multiple(number)
         query = """INSERT INTO GUILD_LICENSES(LICENSE, GUILD_ID, LICENSED_ROLE_ID, LICENSE_DURATION_HOURS) 
                    VALUES(?,?,?,?)"""
         for license in licenses:
@@ -251,6 +251,12 @@ class DatabaseHandler:
                 licenses.append(row[0])
 
         return licenses
+
+    async def get_guild_license_total_count(self, max_number: int, guild_id: int) -> int:
+        query = """SELECT LICENSE FROM GUILD_LICENSES WHERE GUILD_ID=? LIMIT ?"""
+        async with self.connection.execute(query, (guild_id, max_number)) as cursor:
+            rows = await cursor.fetchall()
+            return len(rows)
 
     async def is_valid_license(self, license: str, guild_id: int) -> bool:
         """

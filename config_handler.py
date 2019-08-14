@@ -48,6 +48,9 @@ class ConfigHandler:
     def get_developers(self) -> dict:
         return self.get_key("developers")
 
+    def get_maximum_unused_guild_licences(self) -> int:
+        return self.get_key("maximum_unused_guild_licences")
+
     def get_token(self) -> str:
         return self.get_key("token")
 

@@ -112,8 +112,9 @@ class CmdErrors(commands.Cog):
 
         error_type = type(error)
         exception_message = f"Ignoring {error_type} exception in command '{ctx.command}':{error}"
-        logger.warning(f"{exception_message} \n,traceback:")
-        logger.warning(traceback.format_exc())
+        logger.warning(f"{exception_message}")
+        traceback_message = traceback.format_exception(etype=type(error), value=error, tb=error.__traceback__)
+        logger.warning(traceback_message)
         # TODO Send msg in log channel
         await ctx.send(f"Uncaught exception **{error.__class__.__name__}** happened while processing **{ctx.command}**")
 

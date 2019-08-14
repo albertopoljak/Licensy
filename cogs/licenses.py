@@ -113,7 +113,6 @@ class LicenseHandler(commands.Cog):
     @commands.command(aliases=["activate"])
     @commands.guild_only()
     @commands.bot_has_permissions(manage_roles=True)
-    @commands.cooldown(1, 5, commands.BucketType.member)
     async def redeem(self, ctx, license):
         """
         License is checked for validity in database, if it's valid get the
@@ -174,7 +173,24 @@ class LicenseHandler(commands.Cog):
             await ctx.send("Maximum number of licenses to generate at once is 50.")
             return
 
+        # Check if the role is manageable by bot
+        # Needed since bot isn't doing anything with the role, so no exception will occur.
+        if not ctx.me.top_role > license_role:
+            await ctx.send("I can only manage roles **below** me in hierarchy.")
+            return
+
         guild_id = ctx.guild.id
+
+        # Maximum number of unused licenses
+        max_licenses_per_guild = self.bot.config.get_maximum_unused_guild_licences()
+        guild_licences_count = await self.bot.main_db.get_guild_license_total_count(max_licenses_per_guild+1, guild_id)
+        if guild_licences_count == max_licenses_per_guild:
+            await ctx.send(f"You have reached maximum number of unused licenses per guild: {max_licenses_per_guild}!")
+            return
+        if guild_licences_count + num > max_licenses_per_guild:
+            await ctx.send(f"I can't generate since you will exceed the limit of {max_licenses_per_guild} licenses!\n"
+                           f"Remaining licenses to generate: {max_licenses_per_guild-guild_licences_count}.")
+            return
 
         if license_duration is None:
             license_duration = await self.bot.main_db.get_default_guild_license_duration_hours(guild_id)
@@ -201,7 +217,7 @@ class LicenseHandler(commands.Cog):
 
     @commands.command(aliases=["show", "print"])
     @commands.guild_only()
-    @commands.cooldown(1, 10, commands.BucketType.member)
+    @commands.cooldown(1, 10, commands.BucketType.guild)
     @commands.has_permissions(administrator=True)
     async def licenses(self, ctx, num: positive_integer = 10, license_role: discord.Role = None):
         """

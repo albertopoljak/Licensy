@@ -2,7 +2,7 @@ import random
 import string
 
 
-def generate(amount: int) -> list:
+def generate_multiple(amount: int) -> list:
     licenses = []
     for i in range(amount):
         licenses.append(generate_single())
