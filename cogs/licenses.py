@@ -24,7 +24,14 @@ class LicenseHandler(commands.Cog):
             # Need to wait because on startup if license is expired functions here will try
             # to get guild/member/role objects before the bot is even loaded thus resulting in exception.
             await self.bot.wait_until_ready()
-            await self.check_all_active_licenses()
+            # Do not stop license check loop just because of error
+            # Error can happen in rare cases, for example if the guild from db is not found
+            # in loaded guilds of bot.
+            try:
+                await self.check_all_active_licenses()
+            except Exception as e:
+                logger.critical(e)
+                pass
             logger.info("License check done.")
             # Sleep 15 minutes
             await asyncio.sleep(900)
@@ -86,8 +93,17 @@ class LicenseHandler(commands.Cog):
         """
         guild = self.bot.get_guild(guild_id)
         if guild is None:
-            raise Exception(f"Fatal exception. Guild {guild_id} loaded from database cannot be found in bot guilds!")
+            raise Exception(f"Fatal exception. "
+                            f"Guild **{guild_id}** loaded from database cannot be found in bot guilds!")
+
         member = guild.get_member(member_id)
+
+        # If member has left the guild just return
+        if member is None:
+            logger.warning(f"Can't remove licensed role {licensed_role_id} from member {member_id} "
+                           f"because he has left the guild {licensed_role_id} ({guild.name}).")
+            return
+
         member_role = discord.utils.get(member.roles, id=licensed_role_id)
         if member_role is None:
             raise RoleNotFound(f"Can't remove licensed role {member_role} for {member.mention}."
@@ -181,7 +197,7 @@ class LicenseHandler(commands.Cog):
         generate 7 @role 1w
 
         License duration is either a number representing hours or a string consisting of words in format:
-        each word has to contain integer + type format, words are separated by space.
+        each word has to contain [integer][type format] format, entries are separated by space.
 
         Formats are:
         years y months m weeks w days d hours h

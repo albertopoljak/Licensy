@@ -111,16 +111,17 @@ class CmdErrors(commands.Cog):
             return
 
         if isinstance(error, GuildNotFoundInDB):
-            await ctx.send(f"Critical error: {error.message}")
+            await ctx.send(f"Critical database error: {error.message}")
             return
 
         error_type = type(error)
         exception_message = f"Ignoring {error_type} exception in command '{ctx.command}':{error}"
-        logger.warning(f"{exception_message}")
+        logger.critical(f"{exception_message}")
         traceback_message = traceback.format_exception(etype=type(error), value=error, tb=error.__traceback__)
-        logger.warning(traceback_message)
+        logger.critical(traceback_message)
         # TODO Send msg in log channel
-        await ctx.send(f"Uncaught exception **{error.__class__.__name__}** happened while processing **{ctx.command}**")
+        await ctx.send(f"Ignoring exception **{error.__class__.__name__}** that happened while processing command "
+                       f"**{ctx.command}**:\n{error}")
 
 
 def setup(bot):

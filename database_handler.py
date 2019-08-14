@@ -1,5 +1,6 @@
 import logging
 import aiosqlite
+from typing import Tuple
 from pathlib import Path
 from datetime import datetime
 from helpers import misc
@@ -103,15 +104,22 @@ class DatabaseHandler:
 
     async def change_guild_prefix(self, guild_id: int, prefix: str):
         """
-        This will always print traceback as it's tied to sqlite exception handler.
-        Doesn't matter, just don't get confused when you capture the exception but it still get's
-        printed to stdout.
         :param guild_id: int id of guild to change the prefix to in the database
         :param prefix: str prefix to change to. Length is limited by table GUILDS layout (max 5 chars)
         :raise: IntegrityError if the prefix has too many chars (max 5)
         """
         query = "UPDATE GUILDS SET PREFIX=? WHERE GUILD_ID=?"
         await self.connection.execute(query, (prefix, guild_id))
+        await self.connection.commit()
+
+    async def change_default_guild_role(self, guild_id: int, role_id: int):
+        query = "UPDATE GUILDS SET DEFAULT_LICENSE_ROLE_ID=? WHERE GUILD_ID=?"
+        await self.connection.execute(query, (role_id, guild_id))
+        await self.connection.commit()
+
+    async def change_default_license_expiration(self, guild_id: int, expiration_hours: int):
+        query = "UPDATE GUILDS SET DEFAULT_LICENSE_DURATION_HOURS=? WHERE GUILD_ID=?"
+        await self.connection.execute(query, (expiration_hours, guild_id))
         await self.connection.commit()
 
     async def get_default_guild_license_role_id(self, guild_id: int) -> int:
@@ -147,6 +155,17 @@ class DatabaseHandler:
                 logger.critical(msg)
                 raise GuildNotFoundInDB(msg)
             return int(row[0])
+
+    async def get_guild_info(self, guild_id: int) -> Tuple[str, str, int]:
+        """
+        :param guild_id:
+        :return: tuple(str prefix, str role_id, int expiration hours)
+        """
+        query = "SELECT * FROM GUILDS WHERE GUILD_ID=?"
+        async with self.connection.execute(query, (guild_id,)) as cursor:
+            row = await cursor.fetchone()
+            # ('guild_id', 'prefix', 0, None, 'role_id', hours)
+            return row[1], row[4], row[5]
 
     # TABLE LICENSED_MEMBERS #############################################################
 
