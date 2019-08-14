@@ -11,6 +11,10 @@ class BotPresence(commands.Cog):
     @commands.has_permissions(administrator=True)
     @commands.cooldown(1, 60, commands.BucketType.guild)
     async def prefix(self, ctx, *, prefix):
+        """
+        Changes guild prefix.
+        Maximum prefix size is 5 characters.
+        """
         try:
             await self.bot.main_db.change_guild_prefix(ctx.guild.id, prefix)
         except IntegrityError:

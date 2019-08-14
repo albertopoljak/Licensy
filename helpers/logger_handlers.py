@@ -31,6 +31,6 @@ def get_file_handler() -> TimedRotatingFileHandler:
     log_file_full_path = _log_directory + "log.txt"
     file_handler = TimedRotatingFileHandler(log_file_full_path, when="D", interval=1, backupCount=10, encoding="utf-8")
     file_handler.setFormatter(
-        logging.Formatter("%(asctime)s - %(levelname)s - %(message)s [%(name)s]", "%d-%m-%Y %H:%M:%S"))
+        logging.Formatter("%(asctime)s - %(levelname)s - %(message)s [%(name)s/%(funcName)s]", "%d-%m-%Y %H:%M:%S"))
     file_handler.setLevel(logging.INFO)
     return file_handler

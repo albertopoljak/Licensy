@@ -24,11 +24,10 @@ class LicenseHandler(commands.Cog):
             # Need to wait because on startup if license is expired functions here will try
             # to get guild/member/role objects before the bot is even loaded thus resulting in exception.
             await self.bot.wait_until_ready()
-            logger.info("Checking all licenses...")
             await self.check_all_active_licenses()
             logger.info("License check done.")
-            # Sleep 5 minutes
-            await asyncio.sleep(300)
+            # Sleep 15 minutes
+            await asyncio.sleep(900)
 
     async def check_all_active_licenses(self):
         """
@@ -115,9 +114,11 @@ class LicenseHandler(commands.Cog):
     @commands.bot_has_permissions(manage_roles=True)
     async def redeem(self, ctx, license):
         """
-        License is checked for validity in database, if it's valid get the
-        role linked to the database and assign the role to the member.
-        :param license: License to redeem
+        Adds role to member who invoked the command.
+
+        If license is valid get the role linked to it and assign the role to the member who invoked the command.
+
+        Removes license from the database (it was redeemed).
 
         TODO: Better security (right now license is visible in plain sight in guild)
         """
@@ -163,11 +164,37 @@ class LicenseHandler(commands.Cog):
     @commands.guild_only()
     @commands.cooldown(1, 10, commands.BucketType.guild)
     @commands.has_permissions(administrator=True)
-    async def generate(self, ctx, num: positive_integer = 1, license_role: discord.Role = None,
+    async def generate(self, ctx, num: positive_integer = 3, license_role: discord.Role = None,
                        *, license_duration: license_duration = None):
         """
-        TODO: allow passing arguments in different order
+        Generates new guild licenses.
 
+        All Arguments are optional, if not passed default guild values are used.
+
+        Arguments are stacked, meaning you can't pass 'license_duration' without the first 2 arguments.
+        On the other hand you can pass only 'num'.
+
+        Example usages:
+        generate
+        generate 10
+        generate 5 @role
+        generate 7 @role 1w
+
+        License duration is either a number representing hours or a string consisting of words in format:
+        each word has to contain integer + type format, words are separated by space.
+
+        Formats are:
+        years y months m weeks w days d hours h
+
+        License duration examples:
+        20
+        2y 5months
+        1m
+        3d 12h
+        1w 2m 1w
+        1week 1week
+        12hours 5d
+        ...
         """
         if num > 50:
             await ctx.send("Maximum number of licenses to generate at once is 50.")
@@ -175,7 +202,7 @@ class LicenseHandler(commands.Cog):
 
         # Check if the role is manageable by bot
         # Needed since bot isn't doing anything with the role, so no exception will occur.
-        if not ctx.me.top_role > license_role:
+        if license_role is not None and not ctx.me.top_role > license_role:
             await ctx.send("I can only manage roles **below** me in hierarchy.")
             return
 
@@ -215,18 +242,23 @@ class LicenseHandler(commands.Cog):
                               f"guild **{ctx.guild.name}** in duration of {license_duration}h:\n"
                               f"{dm_content}")
 
-    @commands.command(aliases=["show", "print"])
+    @commands.command(aliases=["licences", "show", "print"])
     @commands.guild_only()
     @commands.cooldown(1, 10, commands.BucketType.guild)
     @commands.has_permissions(administrator=True)
-    async def licenses(self, ctx, num: positive_integer = 10, license_role: discord.Role = None):
+    async def licenses(self, ctx, license_role: discord.Role = None):
         """
-        TODO: allow passing arguments in different order
+        Shows up to 10 licenses in DM.
+
+        Shows licenses linked to license_role and your guild.
+        If license_role is not passed then default guild role is used.
+
+        Sends results in DM to the user who invoked the command.
 
         """
-        if num > 50:
-            await ctx.send("Maximum number of licenses to show at once is 50.")
-            return
+        # Currently fixed to up to 10
+        # TODO: Perhaps add argument for it? Is it necessary?
+        num = 10
 
         guild_id = ctx.guild.id
         if license_role is None:

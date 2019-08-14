@@ -27,6 +27,7 @@ startup_extensions = ["licenses",
 async def prefix_callable(bot_client, message):
     try: 
         # TODO: Store this in list or smth so we don't waste calls to db for each message
+        # TODO: although it's pretty fast (instant)
         return await bot_client.main_db.get_guild_prefix(message.guild.id)
     except Exception as err:
         """

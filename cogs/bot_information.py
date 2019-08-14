@@ -21,6 +21,9 @@ class Information(commands.Cog):
 
     @commands.command()
     async def ping(self, ctx):
+        """
+        Show bot ping.
+        """
         before = time.monotonic()
         message = await ctx.send("Pong")
         ping = (time.monotonic() - before) * 1000
@@ -28,12 +31,18 @@ class Information(commands.Cog):
 
     @commands.command()
     async def invite(self, ctx):
+        """
+        Show bot invite link.
+        """
         invite_link = discord.utils.oauth_url(self.bot.user.id)
         await ctx.send(f"**{ctx.author.mention}**, use this URL to invite me\n<{invite_link}>")
 
     @commands.command(aliases=['info', 'stats', 'status', 'server'])
     @commands.cooldown(1, 10, commands.BucketType.user)
     async def about(self, ctx):
+        """
+        Show bot/server information.
+        """
         last_boot = time_ago(datetime.now() - up_time_start_time)
 
         server_count = len(ctx.bot.guilds)

@@ -5,6 +5,7 @@ from datetime import datetime
 from helpers import misc
 from helpers import licence_generator
 from helpers.errors import DefaultGuildRoleNotSet
+from helpers.errors import GuildNotFoundInDB
 
 logger = logging.getLogger(__name__)
 
@@ -138,6 +139,13 @@ class DatabaseHandler:
         query = "SELECT DEFAULT_LICENSE_DURATION_HOURS FROM GUILDS WHERE GUILD_ID=?"
         async with self.connection.execute(query, (guild_id,)) as cursor:
             row = await cursor.fetchone()
+            #
+            if not row:
+                # License duration has default value.
+                # So if this is None it means the guild is not found in database.
+                msg = f"Guild {guild_id} not found in database!"
+                logger.critical(msg)
+                raise GuildNotFoundInDB(msg)
             return int(row[0])
 
     # TABLE LICENSED_MEMBERS #############################################################

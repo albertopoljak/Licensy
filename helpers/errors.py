@@ -9,3 +9,8 @@ class RoleNotFound(DiscordException):
 class DefaultGuildRoleNotSet(DiscordException):
     def __init__(self, message):
         self.message = message
+
+
+class GuildNotFoundInDB(DiscordException):
+    def __init__(self, message):
+        self.message = message

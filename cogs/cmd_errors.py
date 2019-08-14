@@ -4,7 +4,7 @@ import traceback
 import discord
 from discord.ext import commands
 from discord.errors import Forbidden
-from helpers.errors import RoleNotFound, DefaultGuildRoleNotSet
+from helpers.errors import RoleNotFound, DefaultGuildRoleNotSet, GuildNotFoundInDB
 
 logger = logging.getLogger(__name__)
 
@@ -108,6 +108,10 @@ class CmdErrors(commands.Cog):
 
         if isinstance(error, DefaultGuildRoleNotSet):
             await ctx.send(f"Trying to use default guild license but: {error.message}")
+            return
+
+        if isinstance(error, GuildNotFoundInDB):
+            await ctx.send(f"Critical error: {error.message}")
             return
 
         error_type = type(error)
