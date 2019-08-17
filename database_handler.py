@@ -5,8 +5,7 @@ from pathlib import Path
 from datetime import datetime
 from helpers import misc
 from helpers import licence_generator
-from helpers.errors import DefaultGuildRoleNotSet
-from helpers.errors import GuildNotFoundInDB
+from helpers.errors import DefaultGuildRoleNotSet, DatabaseMissingData
 
 logger = logging.getLogger(__name__)
 
@@ -151,9 +150,7 @@ class DatabaseHandler:
             if not row:
                 # License duration has default value.
                 # So if this is None it means the guild is not found in database.
-                msg = f"Guild {guild_id} not found in database!"
-                logger.critical(msg)
-                raise GuildNotFoundInDB(msg)
+                raise DatabaseMissingData(f"Guild {guild_id} not found in database!")
             return int(row[0])
 
     async def get_guild_info(self, guild_id: int) -> Tuple[str, str, int]:
@@ -198,7 +195,10 @@ class DatabaseHandler:
         query = "SELECT EXPIRATION_DATE FROM LICENSED_MEMBERS WHERE MEMBER_ID=? AND LICENSED_ROLE_ID=?"
         async with self.connection.execute(query, (member_id, licensed_role_id)) as cursor:
             row = await cursor.fetchone()
-            return row[0]
+            if row is not None:
+                return row[0]
+            else:
+                raise DatabaseMissingData(f"ID {member_id} doesn't exists in database table LICENSED_MEMBERS.")
 
     # TABLE GUILD_LICENSES ###############################################################
 

@@ -11,6 +11,6 @@ class DefaultGuildRoleNotSet(DiscordException):
         self.message = message
 
 
-class GuildNotFoundInDB(DiscordException):
+class DatabaseMissingData(DiscordException):
     def __init__(self, message):
         self.message = message

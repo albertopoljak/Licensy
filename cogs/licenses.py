@@ -6,7 +6,7 @@ from discord.ext import commands
 from discord.errors import Forbidden
 import discord.utils
 from helpers.converters import positive_integer, license_duration
-from helpers.errors import RoleNotFound
+from helpers.errors import RoleNotFound, DatabaseMissingData
 
 logger = logging.getLogger(__name__)
 
@@ -26,7 +26,7 @@ class LicenseHandler(commands.Cog):
             await self.bot.wait_until_ready()
             # Do not stop license check loop just because of error
             # Error can happen in rare cases, for example if the guild from db is not found
-            # in loaded guilds of bot.
+            # in loaded guilds of the bot.
             try:
                 await self.check_all_active_licenses()
             except Exception as e:
@@ -119,6 +119,7 @@ class LicenseHandler(commands.Cog):
 
     @commands.Cog.listener()
     async def on_guild_join(self, guild):
+        # TODO Move query to db handler
         guild_id = guild.id
         default_prefix = self.bot.config.get_default_prefix()
         insert_guild_query = "INSERT INTO GUILDS(GUILD_ID, PREFIX) VALUES(?,?)"
@@ -153,7 +154,17 @@ class LicenseHandler(commands.Cog):
             # table the member id and role id is unique aka can only have uniques roles tied to member id)
             if role in author.roles:
                 # We notify user that he already has the role, we also show him the expiration date
-                expiration_date = await self.bot.main_db.get_member_license_expiration_date(author.id, role_id)
+                try:
+                    expiration_date = await self.bot.main_db.get_member_license_expiration_date(author.id, role_id)
+                except DatabaseMissingData as e:
+                    msg = e.message
+                    msg += "\nThe bot did not register you in the database with that role but somehow you have it." \
+                           "\nThis probably means that you were manually assigned this role " \
+                           "without using the bot license system." \
+                           "\nHave someone remove the role from you and call this command again."
+                    await ctx.send(msg)
+                    return
+
                 remaining_time = LicenseHandler.remaining_time(expiration_date)
                 await ctx.send(f"{author.mention} you already have an active subscription for the {role.mention} role!"
                                f"\nIt's valid for another {remaining_time}")

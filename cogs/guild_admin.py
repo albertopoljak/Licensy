@@ -7,7 +7,7 @@ from discord.ext import commands
 logger = logging.getLogger(__name__)
 
 
-class BotPresence(commands.Cog):
+class GuildAdmin(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
@@ -81,7 +81,7 @@ class BotPresence(commands.Cog):
     @commands.has_permissions(administrator=True)
     async def guild_info(self, ctx):
         """
-        Sends a message containing database data for the guild.
+        Shows database data for the guild.
 
         Message contains guild prefix, default license role and default license expiration time.
 
@@ -100,4 +100,4 @@ class BotPresence(commands.Cog):
 
 
 def setup(bot):
-    bot.add_cog(BotPresence(bot))
+    bot.add_cog(GuildAdmin(bot))

@@ -4,7 +4,7 @@ import traceback
 import discord
 from discord.ext import commands
 from discord.errors import Forbidden
-from helpers.errors import RoleNotFound, DefaultGuildRoleNotSet, GuildNotFoundInDB
+from helpers.errors import RoleNotFound, DefaultGuildRoleNotSet, DatabaseMissingData
 
 logger = logging.getLogger(__name__)
 
@@ -110,18 +110,23 @@ class CmdErrors(commands.Cog):
             await ctx.send(f"Trying to use default guild license but: {error.message}")
             return
 
-        if isinstance(error, GuildNotFoundInDB):
+        if isinstance(error, DatabaseMissingData):
             await ctx.send(f"Critical database error: {error.message}")
+            CmdErrors.log_traceback(ctx, error)
             return
 
-        error_type = type(error)
-        exception_message = f"Ignoring {error_type} exception in command '{ctx.command}':{error}"
-        logger.critical(f"{exception_message}")
-        traceback_message = traceback.format_exception(etype=type(error), value=error, tb=error.__traceback__)
-        logger.critical(traceback_message)
+        CmdErrors.log_traceback(ctx, error)
         # TODO Send msg in log channel
         await ctx.send(f"Ignoring exception **{error.__class__.__name__}** that happened while processing command "
                        f"**{ctx.command}**:\n{error}")
+
+    @staticmethod
+    def log_traceback(ctx, error):
+        error_type = type(error)
+        exception_message = f"Ignoring {error_type} exception in command '{ctx.command}':{error}"
+        logger.critical(f"{exception_message}")
+        traceback_message = traceback.format_exception(etype=error_type, value=error, tb=error.__traceback__)
+        logger.critical(traceback_message)
 
 
 def setup(bot):
