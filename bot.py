@@ -17,7 +17,6 @@ config_handler = ConfigHandler()
 database_handler = asyncio.get_event_loop().run_until_complete(DatabaseHandler.create())
 
 startup_extensions = ["licenses",
-                      "database_debug",
                       "bot_owner_commands",
                       "guild_admin",
                       "bot_information",
