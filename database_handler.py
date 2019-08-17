@@ -300,3 +300,15 @@ class DatabaseHandler:
             if row is not None:
                 return True
         return False
+
+    # ALL TABLES #########################################################################
+
+    async def remove_all_guild_data(self, guild_id: int):
+        queries = ["DELETE FROM GUILDS WHERE GUILD_ID=?",
+                   "DELETE FROM LICENSED_MEMBERS WHERE GUILD_ID=?",
+                   "DELETE FROM GUILD_LICENSES WHERE GUILD_ID=?"]
+        for query in queries:
+            await self.connection.execute(query, (guild_id,))
+
+        await self.connection.commit()
+

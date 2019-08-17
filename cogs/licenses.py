@@ -126,6 +126,15 @@ class LicenseHandler(commands.Cog):
         await self.bot.main_db.connection.execute(insert_guild_query, (guild_id, default_prefix))
         await self.bot.main_db.connection.commit()
 
+    @commands.Cog.listener()
+    async def on_guild_remove(self, guild):
+        # TODO sensitive information removal
+        # TODO to be sure add some sleep before deleting
+        guild_id = guild.id
+        logger.info(f"Guild {guild.name} {guild.id} was removed. Removing all database entries.")
+        await self.bot.main_db.remove_all_guild_data(guild_id)
+        logger.info(f"Guild {guild.name} {guild.id} all database entries successfully removed.")
+
     @commands.command(aliases=["activate"])
     @commands.guild_only()
     @commands.bot_has_permissions(manage_roles=True)
