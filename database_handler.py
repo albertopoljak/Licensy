@@ -4,7 +4,7 @@ from typing import Tuple
 from pathlib import Path
 from datetime import datetime
 from helpers import misc
-from helpers import licence_generator
+from helpers import licence_helper
 from helpers.errors import DefaultGuildRoleNotSet, DatabaseMissingData
 
 logger = logging.getLogger(__name__)
@@ -36,7 +36,7 @@ class DatabaseHandler:
 
     async def _get_connection(self) -> aiosqlite.core.Connection:
         """
-        Returs a connection to the db, if db doesn't exist create new
+        Returns a connection to the db, if db doesn't exist create new
         :return: aiosqlite.core.Connection
         """
         path = DatabaseHandler._construct_path(self.db_name)
@@ -94,6 +94,10 @@ class DatabaseHandler:
         return conn
 
     # TABLE GUILDS #######################################################################
+    async def setup_new_guild(self, guild_id: int, default_prefix: str):
+        insert_guild_query = "INSERT INTO GUILDS(GUILD_ID, PREFIX) VALUES(?,?)"
+        await self.connection.execute(insert_guild_query, (guild_id, default_prefix))
+        await self.connection.commit()
 
     async def get_guild_prefix(self, guild_id: int) -> str:
         query = "SELECT PREFIX FROM GUILDS WHERE GUILD_ID=?"
@@ -236,7 +240,7 @@ class DatabaseHandler:
         :return: list of all generated licenses
 
         """
-        licenses = licence_generator.generate_multiple(number)
+        licenses = licence_helper.generate_multiple(number)
         query = """INSERT INTO GUILD_LICENSES(LICENSE, GUILD_ID, LICENSED_ROLE_ID, LICENSE_DURATION_HOURS) 
                    VALUES(?,?,?,?)"""
         for license in licenses:

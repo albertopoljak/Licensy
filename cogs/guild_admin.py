@@ -87,14 +87,20 @@ class GuildAdmin(commands.Cog):
 
         """
         prefix, role_id, expiration = await self.bot.main_db.get_guild_info(ctx.guild.id)
-        default_license_role = discord.utils.get(ctx.guild.roles, id=int(role_id))
+        # If the bot just joined the guild it can happen that the default license role is not set.
+        if role_id is not None:
+            default_license_role = discord.utils.get(ctx.guild.roles, id=int(role_id))
+            default_license_role = default_license_role.mention
+        else:
+            default_license_role = "**Not set!**"
+
         if default_license_role is None:
             default_license_role = role_id
             logger.critical(f"Can't find default license role {role_id} from guild {ctx.guild.name},{ctx.guild.id} ")
             await ctx.send("Can't find default role {role_id} in this guild!")
         msg = (f"Database guild info:\n"
                f"Prefix: **{prefix}**\n"
-               f"Default license role: {default_license_role.mention}\n"
+               f"Default license role: {default_license_role}\n"
                f"Default license expiration time: **{expiration}h**")
         await ctx.send(msg)
 

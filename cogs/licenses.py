@@ -1,12 +1,13 @@
 import asyncio
 import logging
-from datetime import datetime, timedelta
+from datetime import datetime
 from dateutil import parser
 from discord.ext import commands
 from discord.errors import Forbidden
 import discord.utils
 from helpers.converters import positive_integer, license_duration
 from helpers.errors import RoleNotFound, DatabaseMissingData
+from helpers.licence_helper import construct_expiration_date, get_remaining_time
 
 logger = logging.getLogger(__name__)
 
@@ -47,8 +48,6 @@ class LicenseHandler(commands.Cog):
         TODO: but the bot cannot access them because it was kicked (usually we handle that in
         TODO: on_guild_remove event). So TODO add check if all guilds are available, if not
         TODO: then remove everything from database associated with it.
-
-        TODO: add event on_guild_remove
 
         TODO: Move query to database handler
 
@@ -119,12 +118,11 @@ class LicenseHandler(commands.Cog):
 
     @commands.Cog.listener()
     async def on_guild_join(self, guild):
-        # TODO Move query to db handler
+        logger.info(f"Guild {guild.name} {guild.id} joined.")
         guild_id = guild.id
         default_prefix = self.bot.config.get_default_prefix()
-        insert_guild_query = "INSERT INTO GUILDS(GUILD_ID, PREFIX) VALUES(?,?)"
-        await self.bot.main_db.connection.execute(insert_guild_query, (guild_id, default_prefix))
-        await self.bot.main_db.connection.commit()
+        await self.bot.main_db.setup_new_guild(guild_id, default_prefix)
+        logger.info(f"Guild {guild.name} {guild.id} database data added.")
 
     @commands.Cog.listener()
     async def on_guild_remove(self, guild):
@@ -174,7 +172,7 @@ class LicenseHandler(commands.Cog):
                     await ctx.send(msg)
                     return
 
-                remaining_time = LicenseHandler.remaining_time(expiration_date)
+                remaining_time = get_remaining_time(expiration_date)
                 await ctx.send(f"{author.mention} you already have an active subscription for the {role.mention} role!"
                                f"\nIt's valid for another {remaining_time}")
                 return
@@ -187,12 +185,12 @@ class LicenseHandler(commands.Cog):
             # We add entry to db table LICENSED_MEMBERS (which we will checked periodically for expiration)
             # First we get the license duration so we can calculate expiration date
             license_duration = await self.bot.main_db.get_license_duration_hours(license)
-            expiration_date = LicenseHandler.construct_expiration_date(license_duration)
+            expiration_date = construct_expiration_date(license_duration)
             await self.bot.main_db.add_new_licensed_member(author.id, guild.id, expiration_date, role_id)
             # Remove guild license from database, so it can't be redeemed again
             await self.bot.main_db.delete_license(license)
             # Send message notifying user
-            await ctx.send(f"License valid - adding role {role.mention} to {author.mention}")
+            await ctx.send(f"License valid - adding role {role.mention} to {author.mention} in duration of {license_duration}h")
         else:
             await ctx.send("The license key you entered is invalid/deactivated.")
 
@@ -307,6 +305,10 @@ class LicenseHandler(commands.Cog):
         else:
             to_show = await self.bot.main_db.get_guild_licenses(num, guild_id, license_role.id)
 
+        if len(to_show) == 0:
+            await ctx.send("No available licenses for that role.")
+            return
+
         dm_title = f"Showing licenses for role **{license_role.name}** in guild **{ctx.guild.name}**:"
         dm_content = "\n".join(to_show)
         await ctx.author.send(f"{dm_title}\n"
@@ -328,33 +330,6 @@ class LicenseHandler(commands.Cog):
         await ctx.send(f"Trying to use role with ID {missing_role_id} that was set "
                        f"as default role for guild {ctx.guild.name} but cannot find it"
                        f"anymore in the list of roles!")
-
-    @staticmethod
-    def construct_expiration_date(license_duration_hours: int) -> datetime:
-        """
-         Return format:
-        Y-M-D H:M:S.mS
-        :param license_duration_hours: int hours to be added to current date
-        :return: datetime current time incremented by param license_duration_hours
-
-        """
-        expiration_date = datetime.now() + timedelta(hours=license_duration_hours)
-        return expiration_date
-
-    @staticmethod
-    def remaining_time(expiration_date: str) -> str:
-        """
-        :param expiration_date: string in format Y-M-D H:M:S.mS
-        :return: timedelta difference between expiration_date and current time
-
-        """
-        # Convert string to datetime
-        expiration_datetime = datetime.strptime(expiration_date, "%Y-%m-%d %H:%M:%S.%f")
-        # timedelta object
-        difference = expiration_datetime-datetime.now()
-        # difference has ms in it so we remove it here for nicer display
-        difference = str(difference).split(".")[0]
-        return difference
 
 
 def setup(bot):

@@ -23,7 +23,6 @@ def get_file_handler() -> TimedRotatingFileHandler:
     File output is done in a way that logs are separated into 10 files where each file is valid for 1 day
     Oldest one gets rewritten by the newest one.
     Log messages have a timestamp prefix
-    :param file_name: str file name with extension
     :return: TimedRotatingFileHandler
 
     """

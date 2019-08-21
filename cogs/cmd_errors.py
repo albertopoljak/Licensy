@@ -15,11 +15,11 @@ class CmdErrors(commands.Cog):
 
     @commands.Cog.listener()
     async def on_command_error(self, ctx, error):
-        # if command has local error handler, return
+        # If command has local error handler, return
         if hasattr(ctx.command, "on_error"):
             return
 
-        # get the original exception
+        # Get the original exception
         error = getattr(error, "original", error)
 
         if isinstance(error, commands.CommandNotFound):
@@ -32,6 +32,7 @@ class CmdErrors(commands.Cog):
             example @commands.bot_has_permissions(administrator=True)
             It will not work for example if in command role.edit is called but bot doesn't have manage role permission.
             In that case a simple "Forbidden" will be raised.
+            
             """
             missing = [perm.replace("_", " ").replace("guild", "server").title() for perm in error.missing_perms]
             if len(missing) > 2:
@@ -64,6 +65,7 @@ class CmdErrors(commands.Cog):
             """
             Note that this is only for checks of the command , example @commands.has_permissions(administrator=True)
             MissingPermissions is raised if check for permissions of the member who invoked the command has failed.
+            
             """
             missing = [perm.replace("_", " ").replace("guild", "server").title() for perm in error.missing_perms]
             if len(missing) > 2:

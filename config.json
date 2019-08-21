@@ -1,5 +1,5 @@
 {
-    "bot_description": "Bot description",
+    "bot_description": "Licensy bot - easily manage expiration of roles with licenses.",
     "bot_status": "test",
     "default_prefix": "!",
     "developers": {

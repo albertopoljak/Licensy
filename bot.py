@@ -20,12 +20,13 @@ startup_extensions = ["licenses",
                       "bot_owner_commands",
                       "guild_admin",
                       "bot_information",
+                      "bot_owner_db_debug",
                       "cmd_errors"]
 
 
 async def prefix_callable(bot_client, message):
     try: 
-        # TODO: Store this in list or smth so we don't waste calls to db for each message
+        # TODO: Store this in list or something so we don't waste calls to db for each message
         # TODO: although it's pretty fast (instant)
         return await bot_client.main_db.get_guild_prefix(message.guild.id)
     except Exception as err:
@@ -55,6 +56,28 @@ if __name__ == "__main__":
             root_logger.error(f"{exc} Failed to load extension {cog_path}")
             traceback_message = traceback.format_exception(etype=type(e), value=e, tb=e.__traceback__)
             root_logger.warning(traceback_message)
+
+
+@bot.command()
+async def load(ctx, extension_path):
+    """
+    Loads an extension.
+    :param extension_path: full path, dotted access
+
+    """
+    bot.load_extension(extension_path)
+    await ctx.send(f"{extension_path} loaded.")
+
+
+@bot.command()
+async def unload(ctx, extension_path):
+    """
+    Unloads an extension.
+    :param extension_path: full path, dotted access
+
+    """
+    bot.unload_extension(extension_path)
+    await ctx.send(f"{extension_path} unloaded.")
 
 
 @bot.event
