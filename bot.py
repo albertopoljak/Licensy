@@ -6,7 +6,7 @@ import discord
 from discord.ext import commands
 from database_handler import DatabaseHandler
 from config_handler import ConfigHandler
-from helpers import logger_handlers
+from helpers import logger_handlers, embed_handler
 
 root_logger = logging.getLogger()
 root_logger.setLevel(logging.INFO)
@@ -113,8 +113,17 @@ async def on_error(event: str, *args, **kwargs):
     exc_info = sys.exc_info()
     exc_type = exc_info[0].__name__ if exc_info[0] is not None else "<no exception>"
     exc_what = str(exc_info[1]) if exc_info[1] is not None else ""
-    root_logger.critical(f"Uncaught {exc_type} in '{event}': {exc_what}")
-    root_logger.critical(traceback.format_exc())
+    log_message = f"Uncaught {exc_type} in '{event}': {exc_what}"
+    traceback_message = traceback.format_exc()
+    root_logger.critical(log_message)
+    root_logger.critical(traceback_message)
+    if bot.is_ready():
+        log_channel = bot.get_channel(config_handler.get_developer_log_channel_id())
+        embed = embed_handler.log_embed(log_message, title="on_error exception!")
+        embed_traceback = embed_handler.traceback_embed(traceback_message)
+        if log_channel is not None:
+            await log_channel.send(embed=embed)
+            await log_channel.send(embed=embed_traceback)
 
 
 bot.run(bot.config.get_token())

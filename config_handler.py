@@ -48,6 +48,9 @@ class ConfigHandler:
     def get_developers(self) -> dict:
         return self.get_key("developers")
 
+    def get_developer_log_channel_id(self) -> int:
+        return int(self.get_key("developer_log_channel_id"))
+
     def get_maximum_unused_guild_licences(self) -> int:
         return self.get_key("maximum_unused_guild_licences")
 

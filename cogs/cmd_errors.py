@@ -5,6 +5,7 @@ import discord
 from discord.ext import commands
 from discord.errors import Forbidden
 from helpers.errors import RoleNotFound, DefaultGuildRoleNotSet, DatabaseMissingData
+from helpers import embed_handler
 
 logger = logging.getLogger(__name__)
 
@@ -114,21 +115,26 @@ class CmdErrors(commands.Cog):
 
         if isinstance(error, DatabaseMissingData):
             await ctx.send(f"Critical database error: {error.message}")
-            CmdErrors.log_traceback(ctx, error)
+            await self.log_traceback(ctx, error)
             return
 
-        CmdErrors.log_traceback(ctx, error)
-        # TODO Send msg in log channel
+        await self.log_traceback(ctx, error)
         await ctx.send(f"Ignoring exception **{error.__class__.__name__}** that happened while processing command "
                        f"**{ctx.command}**:\n{error}")
 
-    @staticmethod
-    def log_traceback(ctx, error):
+    async def log_traceback(self, ctx, error):
         error_type = type(error)
         exception_message = f"Ignoring {error_type} exception in command '{ctx.command}':{error}"
-        logger.critical(f"{exception_message}")
         traceback_message = traceback.format_exception(etype=error_type, value=error, tb=error.__traceback__)
+        logger.critical(f"{exception_message}")
         logger.critical(traceback_message)
+        if self.bot.is_ready():
+            log_channel = self.bot.get_channel(self.bot.config.get_developer_log_channel_id())
+            embed = embed_handler.log_embed(exception_message, ctx=ctx, title="Command error!")
+            traceback_embed = embed_handler.traceback_embed(traceback_message)
+            if log_channel is not None:
+                await log_channel.send(embed=embed)
+                await log_channel.send(embed=traceback_embed)
 
 
 def setup(bot):

@@ -1,12 +1,12 @@
 {
-    "bot_description": "Licensy bot - easily manage expiration of roles with licenses.",
+    "bot_description": "Licensy bot - easily manage expiration of roles with subscriptions!",
     "bot_status": "test",
     "default_prefix": "!",
     "developers": {
         "BrainDead": 197918569894379520,
         "Kimchi": 229317924354129922
     },
-    "developer_log_channel_id": 1234567890,
+    "developer_log_channel_id": 613847243266719755,
     "maximum_unused_guild_licences": 100,
     "token": ""
 }
