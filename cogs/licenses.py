@@ -2,9 +2,12 @@ import asyncio
 import logging
 from datetime import datetime
 from dateutil import parser
+import texttable
 from discord.ext import commands
 from discord.errors import Forbidden
 import discord.utils
+from aiosqlite import IntegrityError
+from helpers import misc
 from helpers.converters import positive_integer, license_duration
 from helpers.errors import RoleNotFound, DatabaseMissingData
 from helpers.licence_helper import construct_expiration_date, get_remaining_time
@@ -186,7 +189,22 @@ class LicenseHandler(commands.Cog):
             # First we get the license duration so we can calculate expiration date
             license_duration = await self.bot.main_db.get_license_duration_hours(license)
             expiration_date = construct_expiration_date(license_duration)
-            await self.bot.main_db.add_new_licensed_member(author.id, guild.id, expiration_date, role_id)
+            # In case where you successfully redeemed the role and it's still in database(not expired)
+            # BUT someone manually removed the role, in that case when you try to redeem a valid license
+            # for the said role you will get IntegrityError because LICENSED_ROLE_ID and MEMBER_ID have to
+            # be unique (and the entry still exists in database).
+            # Even when catched by remove role event leave this
+            # TODO: On role remove remove from database too
+            try:
+                await self.bot.main_db.add_new_licensed_member(author.id, guild.id, expiration_date, role_id)
+            except IntegrityError:
+                # We remove the database entry because when role was remove the bot was
+                # probably offline and couldn't register the role remove event
+                await self.bot.main_db.delete_licensed_member(author.id, role_id)
+                await self.bot.main_db.add_new_licensed_member(author.id, guild.id, expiration_date, role_id)
+                await ctx.send("Someone removed the role manually from you but no worries,\n"
+                               "since the license is valid we're just gonna reactivate it :)")
+
             # Remove guild license from database, so it can't be redeemed again
             await self.bot.main_db.delete_license(license)
             # Send message notifying user
@@ -313,6 +331,37 @@ class LicenseHandler(commands.Cog):
         dm_content = "\n".join(to_show)
         await ctx.author.send(f"{dm_title}\n"
                               f"{dm_content}")
+
+    @commands.command(aliases=["member_info", "data", "info"])
+    @commands.guild_only()
+    @commands.cooldown(1, 10, commands.BucketType.guild)
+    @commands.has_permissions(administrator=True)
+    async def member_data(self, ctx, member: discord.Member = None):
+        """
+        Shows all information about member saved in database.
+        Sends result in DMs
+
+        """
+        if member is None:
+            member = ctx.author
+
+        table = texttable.Texttable(max_width=90)
+        table.set_cols_dtype(["t", "t"])
+        table.set_cols_align(["c", "c"])
+        header = ("Licensed role", "Expiration date")
+        table.add_row(header)
+
+        all_active = await self.bot.main_db.get_member_data(ctx.guild.id, member.id)
+        for entry in all_active:
+            # entry is in form ("license_id", "expiration_date)
+            try:
+                role = ctx.guild.get_role(int(entry[0]))
+                table.add_row((role.name, entry[1]))
+            except (ValueError, AttributeError):
+                table.add_row(entry)
+
+        message = f"Your active subscriptions in guild '{ctx.guild.name}':\n{table.draw()}"
+        await ctx.author.send(f"```{misc.maximize_size(message)}```")
 
     async def handle_missing_default_role(self, ctx, missing_role_id: int):
         """

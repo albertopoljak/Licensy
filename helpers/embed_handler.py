@@ -1,4 +1,5 @@
 from discord import Embed
+from helpers import misc
 
 
 def log_embed(*messages, ctx=None, title="Log"):
@@ -15,6 +16,6 @@ def traceback_embed(traceback_last):
     # Allow passing both list and string
     if type(traceback_last) is list:
         traceback_last = " ".join(traceback_last)
-    description = ((traceback_last[:1985] + "...too long") if len(traceback_last) > 1985 else traceback_last)
+    description = misc.maximize_size(traceback_last)
     embed = Embed(title="Traceback", description=description)
     return embed

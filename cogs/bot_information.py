@@ -42,7 +42,18 @@ class Information(commands.Cog):
         embed = discord.Embed(description=f"**Use this [URL]{invite_link} to invite me.**")
         await ctx.send(embed=embed)
 
-    @commands.command(aliases=['info', 'stats', 'status', 'server'])
+    @commands.command()
+    async def support(self, ctx):
+        """
+        Shows invite to the support server.
+
+        """
+        support_server_invite = "https://discord.gg/eNZNQUk"
+        description = f"**Join here [Support server]({support_server_invite}) for questions, suggestions and support.**"
+        embed = discord.Embed(description=description)
+        await ctx.send(embed=embed)
+
+    @commands.command(aliases=["stats", "status", "server"])
     @commands.cooldown(1, 10, commands.BucketType.user)
     async def about(self, ctx):
         """

@@ -59,3 +59,7 @@ def check_create_directory(directory_path: str):
     if not Path(directory_path).is_dir():
         logger.info(f"Creating directory {directory_path}")
         os.mkdir(directory_path)
+
+
+def maximize_size(message: str):
+    return (message[:1980] + "...too long") if len(message) > 1980 else message

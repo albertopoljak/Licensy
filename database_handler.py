@@ -1,6 +1,6 @@
 import logging
 import aiosqlite
-from typing import Tuple
+from typing import Tuple, List
 from pathlib import Path
 from datetime import datetime
 from helpers import misc
@@ -203,6 +203,19 @@ class DatabaseHandler:
                 return row[0]
             else:
                 raise DatabaseMissingData(f"ID {member_id} doesn't exists in database table LICENSED_MEMBERS.")
+
+    async def get_member_data(self, guild_id: int, member_id: int) -> List[Tuple]:
+        """
+        Return type:
+        [(), ()...]
+        """
+        query = "SELECT LICENSED_ROLE_ID, EXPIRATION_DATE FROM LICENSED_MEMBERS WHERE GUILD_ID=? AND MEMBER_ID=?"
+        async with self.connection.execute(query, (guild_id, member_id)) as cursor:
+            results = await cursor.fetchall()
+            if results is not None:
+                return results
+            else:
+                raise DatabaseMissingData(f"No active licenses for guild {guild_id}.")
 
     # TABLE GUILD_LICENSES ###############################################################
 

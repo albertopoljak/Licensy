@@ -1,6 +1,7 @@
 import logging
 import discord
 from discord.ext import commands
+from helpers import misc
 from helpers.converters import license_duration
 from helpers.licence_helper import construct_expiration_date
 
@@ -94,7 +95,7 @@ class BotOwnerDbDebug(commands.Cog):
 
         string_output = "".join(to_print)
         logger.info(string_output)
-        await ctx.send((string_output[:1950] + "...too long") if len(string_output) > 1950 else string_output)
+        await ctx.send(misc.maximize_size(string_output))
 
 
 def setup(bot):
