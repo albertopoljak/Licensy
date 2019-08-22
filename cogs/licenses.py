@@ -212,7 +212,7 @@ class LicenseHandler(commands.Cog):
         else:
             await ctx.send("The license key you entered is invalid/deactivated.")
 
-    @commands.command(aliases=["create"])
+    @commands.command()
     @commands.guild_only()
     @commands.cooldown(1, 10, commands.BucketType.guild)
     @commands.has_permissions(administrator=True)
@@ -294,7 +294,7 @@ class LicenseHandler(commands.Cog):
                               f"guild **{ctx.guild.name}** in duration of {license_duration}h:\n"
                               f"{dm_content}")
 
-    @commands.command(aliases=["licences", "show", "print"])
+    @commands.command(aliases=["licences"])
     @commands.guild_only()
     @commands.cooldown(1, 10, commands.BucketType.guild)
     @commands.has_permissions(administrator=True)
@@ -334,11 +334,10 @@ class LicenseHandler(commands.Cog):
 
     @commands.command(aliases=["member_info", "data", "info"])
     @commands.guild_only()
-    @commands.cooldown(1, 10, commands.BucketType.guild)
     @commands.has_permissions(administrator=True)
     async def member_data(self, ctx, member: discord.Member = None):
         """
-        Shows all information about member saved in database.
+        Shows active subscriptions of member.
         Sends result in DMs
 
         """
@@ -352,16 +351,36 @@ class LicenseHandler(commands.Cog):
         table.add_row(header)
 
         all_active = await self.bot.main_db.get_member_data(ctx.guild.id, member.id)
+        if not all_active:
+            await ctx.send("Nothing to show.")
+            return
+
         for entry in all_active:
-            # entry is in form ("license_id", "expiration_date)
+            # Entry is in form ("license_id", "expiration_date)
             try:
                 role = ctx.guild.get_role(int(entry[0]))
                 table.add_row((role.name, entry[1]))
             except (ValueError, AttributeError):
-                table.add_row(entry)
+                # Just in case if error just show IDs from database
+                table.add_row(entry)@commands.command(aliases=["member_info", "data", "info"])
 
         message = f"Your active subscriptions in guild '{ctx.guild.name}':\n{table.draw()}"
         await ctx.author.send(f"```{misc.maximize_size(message)}```")
+
+    @commands.command()
+    @commands.guild_only()
+    @commands.has_permissions(administrator=True)
+    async def delete_license(self, ctx, license):
+        """
+        Deletes specified license.
+        Can delete only 1 at the time.
+
+        """
+        if await self.bot.main_db.is_valid_license(license, ctx.guild.id):
+            await self.bot.main_db.delete_license(license)
+            await ctx.send("License deleted.")
+        else:
+            await ctx.send("License not valid.")
 
     async def handle_missing_default_role(self, ctx, missing_role_id: int):
         """

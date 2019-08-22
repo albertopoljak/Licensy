@@ -58,7 +58,7 @@ if __name__ == "__main__":
             root_logger.warning(traceback_message)
 
 
-@bot.command()
+@bot.command(hidden=True)
 async def load(ctx, extension_path):
     """
     Loads an extension.
@@ -69,7 +69,7 @@ async def load(ctx, extension_path):
     await ctx.send(f"{extension_path} loaded.")
 
 
-@bot.command()
+@bot.command(hidden=True)
 async def unload(ctx, extension_path):
     """
     Unloads an extension.

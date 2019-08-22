@@ -266,6 +266,8 @@ class DatabaseHandler:
         Called for example when member has redeemed license.
         The license is deleted from table GUILD_LICENSES.
         Guild ID is not needed since licenses are unique.
+        But if deleting from withing the guild better to call is_valid_license beforehand
+        to prevent deletion of other guild licenses in other guilds.
         :param license: license to delete
 
         """
