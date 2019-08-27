@@ -1,6 +1,11 @@
-# Member license key Discord bot
+# Licensy - easily manage expiration of roles with subscriptions!
 
-Create license keys that will assign the member with a temporary role when activated.
+Generate license keys that, when redeemed by a member, will add a certain role to member
+that will last for certain time.
+
+Both role and expiration time are tied to license.
+
+You can make all of your roles subscribable and each license can have different expiration date.
 
 ## Requirements
 
@@ -40,7 +45,8 @@ $ python3 bot.py
 
 Role license subscription bot. 
 
-Manage licenses, licensed roles and set license expiration dates.
+Generate and manage licenses which, when redeemed by a member, add certain role
+to the member in
 
 Bulk create licenses with custom or default values or bulk print them.
 
