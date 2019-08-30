@@ -39,9 +39,6 @@ class ConfigHandler:
     def get_description(self) -> str:
         return self.get_key("bot_description")
 
-    def get_bot_status(self) -> str:
-        return self.get_key("bot_status")
-
     def get_default_prefix(self) -> str:
         return self.get_key("default_prefix")
 
@@ -50,6 +47,9 @@ class ConfigHandler:
 
     def get_developer_log_channel_id(self) -> int:
         return int(self.get_key("developer_log_channel_id"))
+
+    def get_support_channel_invite(self) -> str:
+        return self.get_key("support_channel_invite")
 
     def get_maximum_unused_guild_licences(self) -> int:
         return self.get_key("maximum_unused_guild_licences")
@@ -64,9 +64,6 @@ class ConfigHandler:
             error_message = f"Key '{key}' not found in json config! {e}"
             logger.critical(error_message)
             raise KeyError(error_message)
-
-    def update_status(self, status):
-        self.update_key("bot_status", status)
 
     def update_key(self, key, value):
         try:
