@@ -8,7 +8,6 @@ from discord.ext import commands
 from helpers.misc import construct_load_bar_string, construct_embed, time_ago
 
 logger = logging.getLogger(__name__)
-up_time_start_time = datetime.now()
 
 
 class Information(commands.Cog):
@@ -18,17 +17,22 @@ class Information(commands.Cog):
         # Fetch developers only once, at start
         self.bot.loop.create_task(self.set_developers())
         self.process = psutil.Process(os.getpid())
+        self.support_server_invite = self.bot.config.get_support_channel_invite()
 
     @commands.command()
     async def ping(self, ctx):
         """
         Show bot ping.
+        First value is  time needed to send message & edit message.
+        Second value is the actual latency between bot and discord.
 
         """
         before = time.monotonic()
         message = await ctx.send("Pong")
         ping = (time.monotonic() - before) * 1000
-        await message.edit(content=f":ping_pong:   |   {int(ping)}ms")
+        content = (f":ping_pong:   |   {int(ping)}ms\n"
+                   f":timer:   |   {self.bot.latency * 1000:.0f}ms")
+        await message.edit(content=content)
 
     @commands.command()
     async def invite(self, ctx):
@@ -36,10 +40,10 @@ class Information(commands.Cog):
         Shows bot invite link.
 
         """
-        invite_link = ("(https://discordapp.com/api/oauth2/authorize?client_id=604057722878689324&permissions="
-                       "268504064&redirect_uri=https%3A%2F%2Fdiscordapp.com%2Foauth2%2Fauthorize%3Fclient_id%"
-                       "3D604057722878689324%26scope%3Dbot&scope=bot)")
-        embed = discord.Embed(description=f"**Use this [URL]{invite_link} to invite me.**")
+        perms = discord.Permissions()
+        perms.update(manage_roles=True, read_messages=True, send_messages=True)
+        invite_link = discord.utils.oauth_url(self.bot.user.id, permissions=perms)
+        embed = discord.Embed(description=f"**Use this [URL]({invite_link}) to invite me.**")
         await ctx.send(embed=embed)
 
     @commands.command()
@@ -48,8 +52,7 @@ class Information(commands.Cog):
         Shows invite to the support server.
 
         """
-        support_server_invite = "https://discord.gg/eNZNQUk"
-        description = f"**Join here [Support server]({support_server_invite}) for questions, suggestions and support.**"
+        description = f"**Join [support server]({self.support_server_invite}) for questions, suggestions and support.**"
         embed = discord.Embed(description=description)
         await ctx.send(embed=embed)
 
@@ -60,14 +63,8 @@ class Information(commands.Cog):
         Show bot/server information.
 
         """
-        last_boot = time_ago(datetime.now() - up_time_start_time)
-
-        server_count = len(ctx.bot.guilds)
-
         avg_members = round(len(self.bot.users) / len(self.bot.guilds))
         avg_members_string = f"{avg_members} users/server"
-
-        commands_loaded = len(self.bot.commands)
 
         bot_ram_usage = self.process.memory_full_info().rss / 1024 ** 2
         bot_ram_usage = f"{bot_ram_usage:.2f} MB"
@@ -94,30 +91,38 @@ class Information(commands.Cog):
         io_write_bytes = f"{io_counters.write_bytes/1024/1024:.3f}MB"
         io_count = f"{io_counters.read_count}/{io_counters.write_count}"
 
-        footer = "[Invite](https://example.org)" \
-                 " | [Support](https://example.org)" \
-                 " | [Vote](https://example.org)" \
-                 " | [Website](https://example.org)"
+        footer = (f"[Invite](https://example.org)"
+                  f" | [Support]({self.support_server_invite})"
+                  f" | [Vote](https://example.org)"
+                  f" | [Website](https://example.org)")
 
-        field_content = f"**Bot ram usage:** {bot_ram_usage_field}\n" \
-                        f"**Server RAM usage:** {server_ram_usage_field}\n" \
-                        f"**Server swap usage:** {psutil.swap_memory().percent}%\n" \
-                        f"**Server cores:** {cpu_count}\n" \
-                        f"**Bot CPU usage:** {bot_cpu_usage_field}\n" \
-                        f"**Server CPU usage:** {server_cpu_usage_field}\n" \
-                        f"**IO (r/w/c):** {io_read_bytes} , {io_write_bytes} , {io_count}\n" \
-                        f"\n**Links:\n**" + footer
+        field_content = (f"**Bot ram usage:** {bot_ram_usage_field}\n"
+                         f"**Server RAM usage:** {server_ram_usage_field}\n"
+                         f"**Server swap usage:** {psutil.swap_memory().percent}%\n"
+                         f"**Server cores:** {cpu_count}\n"
+                         f"**Bot CPU usage:** {bot_cpu_usage_field}\n"
+                         f"**Server CPU usage:** {server_cpu_usage_field}\n"
+                         f"**IO (r/w/c):** {io_read_bytes} , {io_write_bytes} , {io_count}\n"
+                         f"\n**Links:\n**" + footer)
 
-        fields = {"Last boot": last_boot,
+        fields = {"Last boot": self.last_boot(),
                   "Developers": "\n".join(self.developers),
                   "Library": "discord.py",
-                  "Servers": server_count,
+                  "Servers": len(self.bot.guilds),
                   "Average users:": avg_members_string,
-                  "Commands": commands_loaded,
+                  "Commands": len(self.bot.commands),
                   "Server info": field_content,
                   }
         embed = construct_embed(author=ctx.me, **fields)
         await ctx.send(embed=embed)
+
+    @commands.command()
+    async def uptime(self, ctx):
+        """
+        Time since boot.
+
+        """
+        await ctx.send(self.last_boot())
 
     async def set_developers(self):
         """
@@ -138,6 +143,13 @@ class Information(commands.Cog):
             self.developers = ["Unknown"]
         else:
             self.developers = developers
+
+    def last_boot(self) -> str:
+        """
+        :return: str last boot time
+
+        """
+        return time_ago(datetime.now() - self.bot.up_time_start_time)
 
 
 def setup(bot):
