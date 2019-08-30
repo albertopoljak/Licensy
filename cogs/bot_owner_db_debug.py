@@ -25,10 +25,10 @@ class BotOwnerDbDebug(commands.Cog):
 
     @commands.command(hidden=True)
     @commands.is_owner()
-    async def force_new_licensed_member(self, ctx, member: discord.Member, license: discord.Role,
+    async def force_new_licensed_member(self, ctx, member: discord.Member, role: discord.Role,
                                         *, license_duration: license_duration):
         expiration_date = construct_expiration_date(license_duration)
-        await self.bot.main_db.add_new_licensed_member(member.id, ctx.guild.id, expiration_date, license.id)
+        await self.bot.main_db.add_new_licensed_member(member.id, ctx.guild.id, expiration_date, role.id)
         await ctx.send("Done")
 
     @commands.command(hidden=True)

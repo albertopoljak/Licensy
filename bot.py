@@ -2,6 +2,7 @@ import traceback
 import logging
 import asyncio
 import sys
+from datetime import datetime
 import discord
 from discord.ext import commands
 from database_handler import DatabaseHandler
@@ -43,6 +44,7 @@ async def prefix_callable(bot_client, message):
 bot = commands.Bot(command_prefix=prefix_callable, description=config_handler.get_description())
 bot.config = config_handler
 bot.main_db = database_handler
+bot.up_time_start_time = datetime.now()
 
 if __name__ == "__main__":
     root_logger.info("Loaded extensions:")

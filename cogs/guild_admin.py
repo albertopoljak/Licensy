@@ -14,7 +14,7 @@ class GuildAdmin(commands.Cog):
     @commands.command()
     @commands.guild_only()
     @commands.has_permissions(administrator=True)
-    @commands.cooldown(1, 60, commands.BucketType.guild)
+    @commands.cooldown(1, 30, commands.BucketType.guild)
     async def prefix(self, ctx, *, prefix):
         """
         Changes guild prefix.
