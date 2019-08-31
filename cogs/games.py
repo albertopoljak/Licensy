@@ -3,7 +3,8 @@ import random
 import asyncio
 import discord
 from discord.ext import commands
-from helpers.converters import license_duration as duration
+from discord.errors import NotFound
+from helpers.converters import positive_integer
 
 logger = logging.getLogger(__name__)
 
@@ -15,25 +16,30 @@ class Games(commands.Cog):
     @commands.command()
     @commands.guild_only()
     @commands.has_permissions(manage_guild=True)
-    async def giveaway(self, ctx, duration_seconds: duration):
-        if duration_seconds > 1440:
-            await ctx.send("Maximum duration is 24h!", delete_after=3)
+    async def giveaway(self, ctx, duration_minutes: positive_integer):
+        duration_minutes *= 60
+        if duration_minutes > 1440:
+            await ctx.send(f"Maximum duration is 24h!", delete_after=5)
             return
-
-        everyone_role = ctx.guild.default_role
-        await ctx.send(f"Giveaway has started! {everyone_role.mention}", delete_after=60)
+        elif duration_minutes < 1:
+            await ctx.send("Minimum duration is 1min!", delete_after=5)
+            return
 
         description = "React to this message to enter the giveaway and a chance to win license!"
         embed = discord.Embed(title="Giveaway!", description=description, color=ctx.me.top_role.color)
-        #emoji = "🎉"
-        emoji = ":arrow_backward:"
+        emoji = "🎉"
         message = await ctx.send(embed=embed)
         await message.add_reaction(emoji)
 
-        await ctx.message.delete()
-        await asyncio.sleep(duration_seconds)
+        await asyncio.sleep(duration_minutes)
 
-        done_message = await ctx.channel.fetch_message(message.id)
+        try:
+            done_message = await ctx.channel.fetch_message(message.id)
+        except NotFound:
+            logger.info(f"Event message deleted! Event canceled! Guild:{ctx.guild.id} {ctx.guild.name}, "
+                        f"channel: {ctx.channel.id} {ctx.channel.name}")
+            return
+
         for reaction in done_message.reactions:
             if str(reaction.emoji) == emoji:
                 choices = []
