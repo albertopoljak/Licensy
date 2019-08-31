@@ -7,7 +7,7 @@ from discord.ext import commands
 logger = logging.getLogger(__name__)
 
 
-class GuildAdmin(commands.Cog):
+class Guild(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
@@ -106,4 +106,4 @@ class GuildAdmin(commands.Cog):
 
 
 def setup(bot):
-    bot.add_cog(GuildAdmin(bot))
+    bot.add_cog(Guild(bot))
