@@ -149,8 +149,25 @@ class LicenseHandler(commands.Cog):
 
         TODO: Better security (right now license is visible in plain sight in guild)
         """
+        await self.activate_license(ctx, license, ctx.author)
+
+    @commands.command(allieses=["add_license"])
+    @commands.guild_only()
+    @commands.has_permissions(administrator=True)
+    async def add_license(self, ctx, license, member: discord.Member):
+        """
+        Manually add license to member
+
+        """
+        await self.activate_license(ctx, license, member)
+
+    async def activate_license(self, ctx, license, member):
+        """
+        :param ctx: invoked context
+        :param license: license to add
+        :param member: who to give role to
+        """
         guild = ctx.guild
-        author = ctx.author
         if await self.bot.main_db.is_valid_license(license, guild.id):
             # Adding role to the member requires that role object
             # First we get the role linked to the license
@@ -162,10 +179,10 @@ class LicenseHandler(commands.Cog):
             #   UNIQUE constraint failed:LICENSED_MEMBERS.MEMBER_ID,LICENSED_MEMBERS.LICENSED_ROLE_ID
             # when adding new licensed member to table LICENSED_MEMBERS if member already has the role (because in that
             # table the member id and role id is unique aka can only have uniques roles tied to member id)
-            if role in author.roles:
+            if role in member.roles:
                 # We notify user that he already has the role, we also show him the expiration date
                 try:
-                    expiration_date = await self.bot.main_db.get_member_license_expiration_date(author.id, role_id)
+                    expiration_date = await self.bot.main_db.get_member_license_expiration_date(member.id, role_id)
                 except DatabaseMissingData as e:
                     msg = e.message
                     msg += "\nThe bot did not register you in the database with that role but somehow you have it." \
@@ -176,7 +193,7 @@ class LicenseHandler(commands.Cog):
                     return
 
                 remaining_time = get_remaining_time(expiration_date)
-                await ctx.send(f"{author.mention} you already have an active subscription for the {role.mention} role!"
+                await ctx.send(f"{member.mention} you already have an active subscription for the {role.mention} role!"
                                f"\nIt's valid for another {remaining_time}")
                 return
             # We add the role to the member, we do this before adding/removing stuff from db
@@ -184,7 +201,7 @@ class LicenseHandler(commands.Cog):
             # checked for bot_has_permissions(manage_roles=True) but it can happen that bot has
             # that permission and check is passed but it's still forbidden to alter role for the
             # member because of it's role hierarchy.) -> will raise Forbidden and be caught by cmd error handler
-            await author.add_roles(role, reason="Redeemed license.")
+            await member.add_roles(role, reason="Redeemed license.")
             # We add entry to db table LICENSED_MEMBERS (which we will checked periodically for expiration)
             # First we get the license duration so we can calculate expiration date
             license_duration = await self.bot.main_db.get_license_duration_hours(license)
@@ -196,21 +213,22 @@ class LicenseHandler(commands.Cog):
             # Even when catched by remove role event leave this
             # TODO: On role remove remove from database too
             try:
-                await self.bot.main_db.add_new_licensed_member(author.id, guild.id, expiration_date, role_id)
+                await self.bot.main_db.add_new_licensed_member(member.id, guild.id, expiration_date, role_id)
             except IntegrityError:
                 # We remove the database entry because when role was remove the bot was
                 # probably offline and couldn't register the role remove event
-                await self.bot.main_db.delete_licensed_member(author.id, role_id)
-                await self.bot.main_db.add_new_licensed_member(author.id, guild.id, expiration_date, role_id)
+                await self.bot.main_db.delete_licensed_member(member.id, role_id)
+                await self.bot.main_db.add_new_licensed_member(member.id, guild.id, expiration_date, role_id)
                 await ctx.send("Someone removed the role manually from you but no worries,\n"
                                "since the license is valid we're just gonna reactivate it :)")
 
             # Remove guild license from database, so it can't be redeemed again
             await self.bot.main_db.delete_license(license)
             # Send message notifying user
-            await ctx.send(f"License valid - adding role {role.mention} to {author.mention} in duration of {license_duration}h")
+            await ctx.send(f"License valid - adding role {role.mention} to {member.mention} in duration of {license_duration}h")
         else:
             await ctx.send("The license key you entered is invalid/deactivated.")
+
 
     @commands.command()
     @commands.guild_only()
@@ -314,6 +332,8 @@ class LicenseHandler(commands.Cog):
 
         guild_id = ctx.guild.id
         if license_role is None:
+            # If license role is not passed just use the guild default license role
+            # We load it from database
             licensed_role_id = await self.bot.main_db.get_default_guild_license_role_id(guild_id)
             license_role = ctx.guild.get_role(licensed_role_id)
             if license_role is None:
@@ -332,7 +352,47 @@ class LicenseHandler(commands.Cog):
         await ctx.author.send(f"{dm_title}\n"
                               f"{dm_content}")
 
-    @commands.command(aliases=["member_info", "data", "info"])
+    @commands.command(alliases=["random_licenses"])
+    @commands.guild_only()
+    @commands.cooldown(1, 10, commands.BucketType.guild)
+    @commands.has_permissions(administrator=True)
+    async def random_license(self, ctx, x: int = 1):
+        """
+        Shows random x guild licenses in DM.
+
+        If x is not passed default value is 1.
+        Maximum x is 10 (10 licenses to show).
+
+        Sends results in DM to the user who invoked the command.
+
+        """
+        if x > 10:
+            await ctx.send("Number can't be larger than 10!")
+            return
+        to_show = await self.bot.main_db.get_random_licenses(ctx.guild.id, x)
+        if not to_show:
+            await ctx.send("No licenses saved in db.")
+            return
+
+        table = texttable.Texttable(max_width=90)
+        table.set_cols_dtype(["t", "t", "t"])
+        table.set_cols_align(["c", "c", "c"])
+        header = ("License", "Role", "Duration (h)")
+        table.add_row(header)
+
+        for entry in to_show:
+            # Entry is in form ('I0QSZeyPJTy3H8tNsmUihKsn8JH48y', '617484493296631839', 720)
+            try:
+                role = ctx.guild.get_role(int(entry[1]))
+                table.add_row((entry[0], role.name, entry[2]))
+            except (ValueError, AttributeError):
+                # Just in case if error in case role is None (deleted from guild) just show IDs from database
+                table.add_row(entry)
+
+        message = f"Showing {x} random licenses from guild '{ctx.guild.name}':\n{table.draw()}"
+        await ctx.author.send(f"```{misc.maximize_size(message)}```")
+
+    @commands.command(aliases=["data"])
     @commands.guild_only()
     @commands.has_permissions(administrator=True)
     async def member_data(self, ctx, member: discord.Member = None):
@@ -361,10 +421,10 @@ class LicenseHandler(commands.Cog):
                 role = ctx.guild.get_role(int(entry[0]))
                 table.add_row((role.name, entry[1]))
             except (ValueError, AttributeError):
-                # Just in case if error just show IDs from database
-                table.add_row(entry)@commands.command(aliases=["member_info", "data", "info"])
+                # Just in case if error in case role is None (deleted from guild) just show IDs from database
+                table.add_row(entry)
 
-        message = f"Your active subscriptions in guild '{ctx.guild.name}':\n{table.draw()}"
+        message = f"{member.name} active subscriptions in guild '{ctx.guild.name}':\n{table.draw()}"
         await ctx.author.send(f"```{misc.maximize_size(message)}```")
 
     @commands.command()

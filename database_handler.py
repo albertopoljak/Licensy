@@ -299,7 +299,7 @@ class DatabaseHandler:
         return licenses
 
     async def get_guild_license_total_count(self, max_number: int, guild_id: int) -> int:
-        query = """SELECT LICENSE FROM GUILD_LICENSES WHERE GUILD_ID=? LIMIT ?"""
+        query = "SELECT LICENSE FROM GUILD_LICENSES WHERE GUILD_ID=? LIMIT ?"
         async with self.connection.execute(query, (guild_id, max_number)) as cursor:
             rows = await cursor.fetchall()
             return len(rows)
@@ -319,6 +319,12 @@ class DatabaseHandler:
             if row is not None:
                 return True
         return False
+
+    async def get_random_licenses(self, guild_id: int, amount: int):
+        query = """SELECT LICENSE, LICENSED_ROLE_ID, LICENSE_DURATION_HOURS FROM GUILD_LICENSES
+                   WHERE GUILD_ID=? ORDER BY RANDOM() LIMIT ?"""
+        async with self.connection.execute(query, (guild_id, amount)) as cursor:
+            return await cursor.fetchall()
 
     # ALL TABLES #########################################################################
 
