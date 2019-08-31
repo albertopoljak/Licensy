@@ -21,6 +21,7 @@ startup_extensions = ["licenses",
                       "bot_owner_commands",
                       "guild",
                       "bot_information",
+                      "games",
                       "bot_owner_db_debug",
                       "cmd_errors"]
 
