@@ -1,3 +1,14 @@
+<p align="center">
+    <img src="https://raw.githubusercontent.com/albertopoljak/Licensy/master/logo.png?sanitize=true">
+</p>
+
+![Licensy vAplha](https://img.shields.io/badge/Licensy-alpha-yellow)
+[![Discord support server](https://img.shields.io/discord/613844667611611332?color=%237289DA&label=Support%20Server&logo=discord)](https://discord.gg/eNZNQUk)
+[![Activity](https://img.shields.io/github/commit-activity/w/albertopoljak/Licensy)](https://github.com/albertopoljak/Licensy/pulse)
+![Contributions welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg?style=flat)
+![Python 3.6+](https://img.shields.io/badge/python-3.6%2B-blue)
+[![License AGPL3](https://img.shields.io/github/license/albertopoljak/Licensy?color=red)](LICENSE.md)
+
 # Licensy - easily manage expiration of roles with subscriptions!
 
 Generate license keys that, when redeemed by a member, will add a certain role to member
