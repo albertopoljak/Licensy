@@ -1,5 +1,5 @@
 <p align="center">
-    <img src="https://raw.githubusercontent.com/albertopoljak/Licensy/master/logo.png?sanitize=true">
+    <img src="https://raw.githubusercontent.com/albertopoljak/Licensy/master/logo.png">
 </p>
 
 ![Licensy vAplha](https://img.shields.io/badge/Licensy-alpha-yellow)
