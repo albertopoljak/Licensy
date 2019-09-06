@@ -40,7 +40,7 @@ $ pip install -r requirements.txt
 Note that discord.py version that was used in development is 1.2.3
 , anything above that (except for mayor version changes) should work.
 
-Nevertheless for compability reasons the `requirements.txt` will target specifically v1.2.3
+Nevertheless for compatibility reasons the `requirements.txt` will target specifically v1.2.3
 but if you are sure that there are no breaking changes in future version feel free to update.
 
 Before running the bot edit the `config.json` found in the root directory.

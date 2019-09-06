@@ -6,6 +6,7 @@ from discord.ext import commands
 from discord.errors import Forbidden
 from helpers.errors import RoleNotFound, DefaultGuildRoleNotSet, DatabaseMissingData
 from helpers import embed_handler
+from helpers.embed_handler import failure_embed
 
 logger = logging.getLogger(__name__)
 
@@ -24,7 +25,7 @@ class CmdErrors(commands.Cog):
         error = getattr(error, "original", error)
 
         if isinstance(error, commands.CommandNotFound):
-            await ctx.send("Command not found.")
+            await ctx.send(embed=failure_embed("Command not found."))
             return
 
         if isinstance(error, commands.BotMissingPermissions):
@@ -41,11 +42,11 @@ class CmdErrors(commands.Cog):
             else:
                 fmt = " and ".join(missing)
             _message = f"I need the **{fmt}** permission(s) to run this command."
-            await ctx.send(_message)
+            await ctx.send(embed=failure_embed(_message))
             return
 
         if isinstance(error, commands.DisabledCommand):
-            await ctx.send("This command has been disabled.")
+            await ctx.send(embed=failure_embed("This command has been disabled."))
             return
 
         if isinstance(error, commands.CommandOnCooldown):
@@ -56,10 +57,11 @@ class CmdErrors(commands.Cog):
                 try:
                     await ctx.reinvoke()
                 except Exception as e:
-                    await ctx.send(e)
+                    await ctx.send(embed=failure_embed(str(e)))
                 return
             else:
-                await ctx.send(f"This command is on cooldown, please retry in {math.ceil(error.retry_after)}s.")
+                msg = f"This command is on cooldown, please retry in {math.ceil(error.retry_after)}s."
+                await ctx.send(embed=failure_embed(msg))
                 return
 
         if isinstance(error, commands.MissingPermissions):
@@ -74,53 +76,58 @@ class CmdErrors(commands.Cog):
             else:
                 fmt = " and ".join(missing)
             _message = f"You need the **{fmt}** permission(s) to use this command."
-            await ctx.send(_message)
+            await ctx.send(embed=failure_embed(_message))
             return
 
         if isinstance(error, commands.UserInputError):
-            await ctx.send(f"Invalid command input: {error}")
+            await ctx.send(embed=failure_embed(f"Invalid command input: {error}"))
             return
 
         if isinstance(error, commands.NoPrivateMessage):
             try:
-                await ctx.author.send("This command cannot be used in direct messages.")
+                await ctx.author.send(embed=failure_embed("This command cannot be used in direct messages."))
             except discord.Forbidden:
                 pass
             return
 
         if isinstance(error, commands.CheckFailure):
-            await ctx.send("You do not have permission to use this command.")
+            await ctx.send(embed=failure_embed("You do not have permission to use this command."))
             return
 
         if isinstance(error, Forbidden):
             # 403 FORBIDDEN (error code: 50013): Missing Permissions
             if error.code == 50013:
-                await ctx.send(f"{error}.\n"
-                               f"Check role hierarchy - I can only manage roles below me.")
+                msg = (f"{error}.\n"
+                       f"Check role hierarchy - I can only manage roles below me.")
+                await ctx.send(embed=failure_embed(msg))
+
             # 403 FORBIDDEN (error code: 50007): Cannot send messages to this user.
             elif error.code == 50007:
-                await ctx.send(f"{error}.\n"
-                               f"Hint: Disabled DMs?")
+                msg = (f"{error}.\n"
+                       f"Hint: Disabled DMs?")
+                await ctx.send(embed=failure_embed(msg))
+
             else:
-                await ctx.send(f"{error}.")
+                await ctx.send(embed=failure_embed(f"{error}."))
             return
 
         if isinstance(error, RoleNotFound):
-            await ctx.send(error.message)
+            await ctx.send(embed=failure_embed(error.message))
             return
 
         if isinstance(error, DefaultGuildRoleNotSet):
-            await ctx.send(f"Trying to use default guild license but: {error.message}")
+            await ctx.send(embed=failure_embed(f"Trying to use default guild license but: {error.message}"))
             return
 
         if isinstance(error, DatabaseMissingData):
-            await ctx.send(f"Critical database error: {error.message}")
+            await ctx.send(embed=failure_embed(f"Critical database error: {error.message}"))
             await self.log_traceback(ctx, error)
             return
 
         await self.log_traceback(ctx, error)
-        await ctx.send(f"Ignoring exception **{error.__class__.__name__}** that happened while processing command "
-                       f"**{ctx.command}**:\n{error}")
+        msg = (f"Ignoring exception **{error.__class__.__name__}** that happened while processing command "
+               f"**{ctx.command}**:\n{error}")
+        await ctx.send(embed=failure_embed(msg))
 
     async def log_traceback(self, ctx, error):
         error_type = type(error)

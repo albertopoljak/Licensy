@@ -4,6 +4,7 @@ from discord.ext import commands
 from helpers import misc
 from helpers.converters import license_duration
 from helpers.licence_helper import construct_expiration_date
+from helpers.embed_handler import success_embed, failure_embed, info_embed
 
 logger = logging.getLogger(__name__)
 
@@ -21,7 +22,7 @@ class BotOwnerDbDebug(commands.Cog):
 
         """
         await self.bot.main_db.setup_new_guild(ctx.guild.id, guild_prefix)
-        await ctx.send("Done")
+        await ctx.send(embed=success_embed("Done", ctx.me))
 
     @commands.command(hidden=True)
     @commands.is_owner()
@@ -29,19 +30,19 @@ class BotOwnerDbDebug(commands.Cog):
                                         *, license_duration: license_duration):
         expiration_date = construct_expiration_date(license_duration)
         await self.bot.main_db.add_new_licensed_member(member.id, ctx.guild.id, expiration_date, role.id)
-        await ctx.send("Done")
+        await ctx.send(embed=success_embed("Done", ctx.me))
 
     @commands.command(hidden=True)
     @commands.is_owner()
     async def force_delete_licensed_member(self, ctx, member: discord.Member, licensed_role: discord.Role):
         await self.bot.main_db.delete_licensed_member(member.id, licensed_role.id)
-        await ctx.send("Done")
+        await ctx.send(embed=success_embed("Done", ctx.me))
 
     @commands.command(hidden=True)
     @commands.is_owner()
     async def force_get_guild_license_total_count(self, ctx):
         count = await self.bot.main_db.get_guild_license_total_count(10000, ctx.guild.id)
-        await ctx.send(count)
+        await ctx.send(embed=info_embed(count, ctx.me))
 
     @commands.command(hidden=True)
     @commands.is_owner()
@@ -51,15 +52,15 @@ class BotOwnerDbDebug(commands.Cog):
 
         """
         if await self.bot.main_db.is_valid_license(license, ctx.guild.id):
-            await ctx.send("License is valid")
+            await ctx.send(embed=success_embed("License is valid", ctx.me))
         else:
-            await ctx.send(f"License is not valid.")
+            await ctx.send(embed=failure_embed(f"License is not valid."))
 
     @commands.command(hidden=True)
     @commands.is_owner()
     async def force_remove_all_guild_data(self, ctx):
         await self.bot.main_db.remove_all_guild_data(ctx.guild.id)
-        await ctx.send("Done")
+        await ctx.send(embed=success_embed("Done", ctx.me))
 
     @commands.command(hidden=True)
     @commands.is_owner()

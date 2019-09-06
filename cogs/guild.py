@@ -3,6 +3,7 @@ import logging
 import discord
 from aiosqlite import IntegrityError
 from discord.ext import commands
+from helpers.embed_handler import success_embed, failure_embed
 
 logger = logging.getLogger(__name__)
 
@@ -24,10 +25,10 @@ class Guild(commands.Cog):
         try:
             await self.bot.main_db.change_guild_prefix(ctx.guild.id, prefix)
         except IntegrityError:
-            await ctx.send("Prefix is too long! Maximum of 5 characters please.")
+            await ctx.send(embed=failure_embed("Prefix is too long! Maximum of 5 characters please."))
             return
 
-        await ctx.send(f"Successfully changed prefix to **{prefix}**")
+        await ctx.send(embed=success_embed(f"Successfully changed prefix to **{prefix}**", ctx.me))
 
     @commands.command()
     @commands.guild_only()
@@ -42,10 +43,10 @@ class Guild(commands.Cog):
         """
         # Check if the role is manageable by bot
         if not ctx.me.top_role > role:
-            await ctx.send("I can only manage roles **below** me in hierarchy.")
+            await ctx.send(embed=failure_embed("I can only manage roles **below** me in hierarchy."))
             return
         await self.bot.main_db.change_default_guild_role(ctx.guild.id, role.id)
-        await ctx.send(f"{role.mention} set as default!")
+        await ctx.send(embed=success_embed(f"{role.mention} set as default!", ctx.me))
 
     @commands.command(aliases=["license_expiration", "expiration"])
     @commands.guild_only()
@@ -74,7 +75,7 @@ class Guild(commands.Cog):
 
         """
         await self.bot.main_db.change_default_license_expiration(ctx.guild.id, expiration)
-        await ctx.send(f"Default license expiration set to **{expiration}h**!")
+        await ctx.send(embed=success_embed(f"Default license expiration set to **{expiration}h**!", ctx.me))
 
     @commands.command()
     @commands.guild_only()
@@ -90,19 +91,29 @@ class Guild(commands.Cog):
         # If the bot just joined the guild it can happen that the default license role is not set.
         if role_id is not None:
             default_license_role = discord.utils.get(ctx.guild.roles, id=int(role_id))
-            default_license_role = default_license_role.mention
+            # In case it is set in db but was deleted from the guild.
+            # This is needed in case the bot was offline and role was deleted
+            # because on_guild_role_delete will not fire (we delete it from db in that event if that deleted role
+            # is set as default guild role).
+            # TODO: ABOVE EVENT
+            if default_license_role is None:
+                default_license_role = role_id
+                log = f"Can't find default license role {role_id} from guild {ctx.guild.name},{ctx.guild.id}"
+                msg = (f"Can't find default role {role_id} in this guild!\n"
+                       f"It's saved in the database but it looks like it was deleted from the guild.\n"
+                       f"Please update it.")
+                logger.critical(log)
+                await ctx.send(embed=failure_embed(msg))
+            else:
+                default_license_role = default_license_role.mention
         else:
             default_license_role = "**Not set!**"
 
-        if default_license_role is None:
-            default_license_role = role_id
-            logger.critical(f"Can't find default license role {role_id} from guild {ctx.guild.name},{ctx.guild.id} ")
-            await ctx.send("Can't find default role {role_id} in this guild!")
         msg = (f"Database guild info:\n"
                f"Prefix: **{prefix}**\n"
                f"Default license role: {default_license_role}\n"
                f"Default license expiration time: **{expiration}h**")
-        await ctx.send(msg)
+        await ctx.send(embed=success_embed(msg, ctx.me))
 
 
 def setup(bot):

@@ -336,4 +336,3 @@ class DatabaseHandler:
             await self.connection.execute(query, (guild_id,))
 
         await self.connection.commit()
-

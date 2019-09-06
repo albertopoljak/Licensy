@@ -8,6 +8,7 @@ from discord.ext import commands
 from database_handler import DatabaseHandler
 from config_handler import ConfigHandler
 from helpers import logger_handlers, embed_handler
+from helpers.embed_handler import success_embed
 
 root_logger = logging.getLogger()
 root_logger.setLevel(logging.INFO)
@@ -69,7 +70,7 @@ async def load(ctx, extension_path):
 
     """
     bot.load_extension(extension_path)
-    await ctx.send(f"{extension_path} loaded.")
+    await ctx.send(embed=success_embed(f"{extension_path} loaded.", ctx.me))
 
 
 @bot.command(hidden=True)
@@ -80,7 +81,7 @@ async def unload(ctx, extension_path):
 
     """
     bot.unload_extension(extension_path)
-    await ctx.send(f"{extension_path} unloaded.")
+    await ctx.send(embed=success_embed(f"{extension_path} unloaded.", ctx.me))
 
 
 @bot.event

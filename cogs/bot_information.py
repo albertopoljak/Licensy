@@ -6,6 +6,7 @@ import logging
 from datetime import datetime
 from discord.ext import commands
 from helpers.misc import construct_load_bar_string, construct_embed, time_ago
+from helpers.embed_handler import info_embed
 
 logger = logging.getLogger(__name__)
 
@@ -28,11 +29,11 @@ class Information(commands.Cog):
 
         """
         before = time.monotonic()
-        message = await ctx.send("Pong")
+        message = await ctx.send(embed=info_embed("Pong", ctx.me))
         ping = (time.monotonic() - before) * 1000
         content = (f":ping_pong:   |   {int(ping)}ms\n"
                    f":timer:   |   {self.bot.latency * 1000:.0f}ms")
-        await message.edit(content=content)
+        await message.edit(embed=info_embed(content, ctx.me, title="Results:"))
 
     @commands.command()
     async def invite(self, ctx):
@@ -43,8 +44,8 @@ class Information(commands.Cog):
         perms = discord.Permissions()
         perms.update(manage_roles=True, read_messages=True, send_messages=True)
         invite_link = discord.utils.oauth_url(self.bot.user.id, permissions=perms)
-        embed = discord.Embed(description=f"**Use this [URL]({invite_link}) to invite me.**")
-        await ctx.send(embed=embed)
+        description = f"Use this **[invite]({invite_link})** to invite me."
+        await ctx.send(embed=info_embed(description, ctx.me, title="Invite me :)"))
 
     @commands.command()
     async def support(self, ctx):
@@ -52,9 +53,8 @@ class Information(commands.Cog):
         Shows invite to the support server.
 
         """
-        description = f"**Join [support server]({self.support_server_invite}) for questions, suggestions and support.**"
-        embed = discord.Embed(description=description)
-        await ctx.send(embed=embed)
+        description = f"Join **[support server]({self.support_server_invite})** for questions, suggestions and support."
+        await ctx.send(embed=info_embed(description, ctx.me, title="Ask away!"))
 
     @commands.command(aliases=["stats", "status", "server"])
     @commands.cooldown(1, 10, commands.BucketType.user)
@@ -122,7 +122,7 @@ class Information(commands.Cog):
         Time since boot.
 
         """
-        await ctx.send(self.last_boot())
+        await ctx.send(embed=info_embed(self.last_boot(), ctx.me, title="Booted:"))
 
     async def set_developers(self):
         """

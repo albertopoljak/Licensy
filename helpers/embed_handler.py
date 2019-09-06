@@ -1,5 +1,27 @@
-from discord import Embed
+from discord import Embed, Colour, Member
 from helpers import misc
+
+
+def _simple_embed(message: str, title: str, color: Colour) -> Embed:
+    embed = Embed(title=title, description=message, color=color)
+    return embed
+
+
+def info_embed(message: str, member: Member, title: str = Embed.Empty) -> Embed:
+    embed = Embed(title=title, description=message, color=member.top_role.colour)
+    return embed
+
+
+def success_embed(message: str, member: Member) -> Embed:
+    return _simple_embed(message, "Success", member.top_role.colour)
+
+
+def warning_embed(message: str) -> Embed:
+    return _simple_embed(message, "Warning", Colour.dark_gold())
+
+
+def failure_embed(message: str) -> Embed:
+    return _simple_embed(message, "Failure", Colour.red())
 
 
 def log_embed(*messages, ctx=None, title="Log"):
