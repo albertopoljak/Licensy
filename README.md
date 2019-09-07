@@ -33,7 +33,7 @@ For other Linux flavors, macOS and Windows, packages are available at
 ## Usage
 
 ```bash
-$ cd MemberLicenseKey-DiscordBot
+$ cd Licensy
 $ pip install -r requirements.txt
 ```
 
