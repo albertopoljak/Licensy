@@ -36,7 +36,6 @@ class LicenseHandler(commands.Cog):
                 await self.check_all_active_licenses()
             except Exception as e:
                 logger.critical(e)
-                pass
             logger.info("License check done.")
             # Sleep 15 minutes
             await asyncio.sleep(900)
@@ -64,7 +63,13 @@ class LicenseHandler(commands.Cog):
                 licensed_role_id = int(row[3])
                 if await LicenseHandler.has_license_expired(expiration_date):
                     logger.info(f"Expired license for member:{member_id} role:{licensed_role_id} guild:{member_guild_id}")
-                    await self.remove_role(member_id, member_guild_id, licensed_role_id)
+                    try:
+                        await self.remove_role(member_id, member_guild_id, licensed_role_id)
+                    except RoleNotFound:
+                        logger.warning(f"Role expired but can't be removed from member because he doesn't have it! "
+                                       f"Someone must have manually removed it before it expired.\t"
+                                       f"Member ID:{member_id}, guild ID:{member_guild_id}, role ID:{licensed_role_id}"
+                                       f"Continuing to db entry removal...")
                     await self.bot.main_db.delete_licensed_member(member_id, licensed_role_id)
                     logger.info(f"Role {licensed_role_id} successfully removed from member:{member_id}")
 
@@ -91,7 +96,9 @@ class LicenseHandler(commands.Cog):
         :param guild_id: guild ID from where the member is from. Needed because member can be in
                          multiple guilds at the same time.
         :param licensed_role_id: ID of a role to remove from member
-        :raise discord.NotFound: If @licensed_role_id is not found for @member_id when removing the role
+        :raise RoleNotFound: if roles to be removed isn't in member roles (case when in db it's saved but someone
+                manually removed their role so when db role expires and needs to be removed there is nothing to be
+                removed)
 
         """
         guild = self.bot.get_guild(guild_id)
@@ -136,6 +143,22 @@ class LicenseHandler(commands.Cog):
         logger.info(f"Guild {guild.name} {guild.id} was removed. Removing all database entries.")
         await self.bot.main_db.remove_all_guild_data(guild_id)
         logger.info(f"Guild {guild.name} {guild.id} all database entries successfully removed.")
+
+    @commands.command()
+    @commands.guild_only()
+    @commands.bot_has_permissions(manage_roles=True)
+    @commands.has_permissions(manage_roles=True)
+    async def revoke(self, ctx, member: discord.Member, role: discord.Role):
+        try:
+            # DRY
+            await self.bot.main_db.get_member_license_expiration_date(member.id, role.id)
+        except DatabaseMissingData:
+            msg = f"{member.mention} doesn't have a subscription for {role.mention} saved in the database!"
+            await ctx.send(embed=failure_embed(msg))
+            return
+
+        await self.bot.main_db.delete_licensed_member(member.id, role.id)
+        await ctx.send(embed=success_embed(f"Successfully revoked subscription for {role.mention} from {member.mention}"))
 
     @commands.command(aliases=["activate"])
     @commands.guild_only()
