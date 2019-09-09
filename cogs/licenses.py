@@ -158,7 +158,8 @@ class LicenseHandler(commands.Cog):
             return
 
         await self.bot.main_db.delete_licensed_member(member.id, role.id)
-        await ctx.send(embed=success_embed(f"Successfully revoked subscription for {role.mention} from {member.mention}"))
+        msg = f"Successfully revoked subscription for {role.mention} from {member.mention}"
+        await ctx.send(embed=success_embed(msg, ctx.me))
 
     @commands.command(aliases=["activate"])
     @commands.guild_only()
