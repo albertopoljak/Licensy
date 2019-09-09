@@ -8,19 +8,51 @@ def _simple_embed(message: str, title: str, color: Colour) -> Embed:
 
 
 def info_embed(message: str, member: Member, title: str = Embed.Empty) -> Embed:
+    """
+    Constructs success embed with custom title and description.
+    Color depends on passed member top role color.
+    :param message: embed description
+    :param member: member object to get the color of it's top role from
+    :param title: title of embed
+    :return: Embed object
+
+    """
     embed = Embed(title=title, description=message, color=member.top_role.colour)
     return embed
 
 
 def success_embed(message: str, member: Member) -> Embed:
+    """
+    Constructs success embed with fixed title:Success and color depending
+    on passed member top role color.
+    This will be used quite common so no sense to hard-code green colour since
+    we want most of the messages the bot sends to be the color of it's top role.
+    :param message: embed description
+    :param member: member object to get the color of it's top role from,
+                   usually our bot member object from the specific guild.
+    :return: Embed object
+
+    """
     return _simple_embed(message, "Success", member.top_role.colour)
 
 
 def warning_embed(message: str) -> Embed:
+    """
+    Constructs warning embed with fixed title:Warning and color:gold
+    :param message: embed description
+    :return: Embed object
+
+    """
     return _simple_embed(message, "Warning", Colour.dark_gold())
 
 
 def failure_embed(message: str) -> Embed:
+    """
+    Constructs failure embed with fixed title:Failure and color:red
+    :param message: embed description
+    :return: Embed object
+
+    """
     return _simple_embed(message, "Failure", Colour.red())
 
 
