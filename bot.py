@@ -58,8 +58,8 @@ if __name__ == "__main__":
         except Exception as e:
             exc = f"{type(e).__name__}: {e}"
             root_logger.error(f"{exc} Failed to load extension {cog_path}")
-            traceback_message = traceback.format_exception(etype=type(e), value=e, tb=e.__traceback__)
-            root_logger.warning(traceback_message)
+            traceback_msg = traceback.format_exception(etype=type(e), value=e, tb=e.__traceback__)
+            root_logger.warning(traceback_msg)
 
 
 @bot.command(hidden=True)

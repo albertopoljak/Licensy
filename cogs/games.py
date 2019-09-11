@@ -17,6 +17,8 @@ class Games(commands.Cog):
     @commands.command()
     @commands.guild_only()
     @commands.has_permissions(manage_guild=True)
+    # TODO
+    # apparently guild_only has to be last deco because order of checking is bottom to top
     async def giveaway(self, ctx, duration_minutes: positive_integer, channel: discord.TextChannel):
         if duration_minutes > 1440:
             await ctx.send(embed=failure_embed("Maximum duration is 24h!"), delete_after=5)

@@ -149,6 +149,11 @@ class LicenseHandler(commands.Cog):
     @commands.bot_has_permissions(manage_roles=True)
     @commands.has_permissions(manage_roles=True)
     async def revoke(self, ctx, member: discord.Member, role: discord.Role):
+        """
+        Revoke active subscription from member.
+
+        Removed both the database entry and the role from a member.
+        """
         try:
             # DRY
             await self.bot.main_db.get_member_license_expiration_date(member.id, role.id)
@@ -157,6 +162,8 @@ class LicenseHandler(commands.Cog):
             await ctx.send(embed=failure_embed(msg))
             return
 
+        # First remove the role from member because this can fail in case of changed role hierarchy.
+        await member.remove_roles(role)
         await self.bot.main_db.delete_licensed_member(member.id, role.id)
         msg = f"Successfully revoked subscription for {role.mention} from {member.mention}"
         await ctx.send(embed=success_embed(msg, ctx.me))
@@ -198,6 +205,18 @@ class LicenseHandler(commands.Cog):
             # First we get the role linked to the license
             role_id = await self.bot.main_db.get_license_role_id(license)
             role = ctx.guild.get_role(role_id)
+            if role is None:
+                log_error_msg = (f"Can't find role {role_id} in guild {guild.id} '{guild.name}' "
+                                 f"from license: '{license}' member to give the role to: {member.id} '{member.name}'"
+                                 "\n\nProceeding to delete this invalid license from database!")
+                logger.critical(log_error_msg)
+
+                msg = ("Well this is awkward...\n\n"
+                       "The role that was supposed to be given out by this license has been deleted from this guild!"
+                       f"\n\nError message:\n\n{log_error_msg}")
+                await ctx.send(embed=failure_embed(msg))
+                await self.bot.main_db.delete_license(license)
+                return
             # Now before doing anything check if member already has the role
             # Beside for logic (why redeem already existing subscription?) if we don't check this we will get
             # sqlite3.IntegrityError:
@@ -267,6 +286,7 @@ class LicenseHandler(commands.Cog):
         """
         Generates new guild licenses.
 
+        Max licenses to generate at once is 25.
         All Arguments are optional, if not passed default guild values are used.
 
         Arguments are stacked, meaning you can't pass 'license_duration' without the first 2 arguments.
@@ -294,8 +314,8 @@ class LicenseHandler(commands.Cog):
         12hours 5d
         ...
         """
-        if num > 50:
-            await ctx.send(embed=failure_embed("Maximum number of licenses to generate at once is 50."))
+        if num > 25:
+            await ctx.send(embed=failure_embed("Maximum number of licenses to generate at once is 25."))
             return
 
         # Check if the role is manageable by bot
@@ -338,11 +358,20 @@ class LicenseHandler(commands.Cog):
                    f" in duration of {license_duration}h.\n"
                    f"Sending generated licenses in DM for quick use.")
         await ctx.send(embed=success_embed(ctx_msg, ctx.me))
-        dm_content = "\n".join(generated)
-        dm_msg = (f"Generated {count_generated} licenses for role **{license_role.name}** in "
-                  f"guild **{ctx.guild.name}** in duration of {license_duration}h:\n"
-                  f"{dm_content}")
-        await ctx.author.send(dm_msg)
+
+        table = texttable.Texttable(max_width=45)
+        table.set_cols_dtype(["t"])
+        table.set_cols_align(["c"])
+        header = ("License",)
+        table.add_row(header)
+
+        for license in generated:
+            table.add_row((license,))
+
+        dm_msg = (f"Generated {count_generated} licenses for role '{license_role.name}' in "
+                  f"guild '{ctx.guild.name}' in duration of {license_duration}h:\n"
+                  f"{table.draw()}")
+        await ctx.author.send(f"```{misc.maximize_size(dm_msg)}```")
 
     @commands.command(aliases=["licences"])
     @commands.guild_only()
@@ -350,7 +379,7 @@ class LicenseHandler(commands.Cog):
     @commands.has_permissions(administrator=True)
     async def licenses(self, ctx, license_role: discord.Role = None):
         """
-        Shows up to 10 licenses in DM.
+        Shows up to 15 licenses in DM.
 
         Shows licenses linked to license_role and your guild.
         If license_role is not passed then default guild role is used.
@@ -358,9 +387,8 @@ class LicenseHandler(commands.Cog):
         Sends results in DM to the user who invoked the command.
 
         """
-        # Currently fixed to up to 10
         # TODO: Perhaps add argument for it? Is it necessary?
-        num = 10
+        num = 15
 
         guild_id = ctx.guild.id
         if license_role is None:
@@ -379,10 +407,21 @@ class LicenseHandler(commands.Cog):
             await ctx.send(embed=failure_embed("No available licenses for that role."))
             return
 
-        dm_title = f"Showing licenses for role **{license_role.name}** in guild **{ctx.guild.name}**:"
-        dm_content = "\n".join(to_show)
-        await ctx.author.send(f"{dm_title}\n"
-                              f"{dm_content}")
+        table = texttable.Texttable(max_width=45)
+        table.set_cols_dtype(["t"])
+        table.set_cols_align(["c"])
+        header = ("License",)
+        table.add_row(header)
+
+        for license in to_show:
+            table.add_row((license,))
+
+        dm_title = f"Showing {len(to_show)} licenses for role '{license_role.name}' in guild '{ctx.guild.name}':"
+        message = (f"{dm_title}\n"
+                   f"{table.draw()}")
+
+        await ctx.author.send(f"```{misc.maximize_size(message)}```")
+        await ctx.send(embed=success_embed("Sent to DM!", ctx.me), delete_after=5)
 
     @commands.command(alliases=["random_licenses"])
     @commands.guild_only()
@@ -393,7 +432,7 @@ class LicenseHandler(commands.Cog):
         Shows random x guild licenses in DM.
 
         If x is not passed default value is 1.
-        Maximum x is 10 (10 licenses to show).
+        Maximum licenses to show is 10.
 
         Sends results in DM to the user who invoked the command.
 
@@ -423,18 +462,27 @@ class LicenseHandler(commands.Cog):
 
         message = f"Showing {x} random licenses from guild '{ctx.guild.name}':\n{table.draw()}"
         await ctx.author.send(f"```{misc.maximize_size(message)}```")
+        await ctx.send(embed=success_embed("Sent to DM!", ctx.me), delete_after=5)
 
     @commands.command(aliases=["data"])
     @commands.guild_only()
-    @commands.has_permissions(administrator=True)
     async def member_data(self, ctx, member: discord.Member = None):
         """
         Shows active subscriptions of member.
         Sends result in DMs
 
         """
+
         if member is None:
             member = ctx.author
+        else:
+            # If called member is the same as author allow him to see since it's himself
+            if ctx.author == member:
+                pass
+            # We require admin permissions if you want to see other members data
+            elif not ctx.author.guild_permissions.administrator:
+                await ctx.send(embed=failure_embed("You need administrator permission to see other members data."))
+                return
 
         table = texttable.Texttable(max_width=90)
         table.set_cols_dtype(["t", "t"])

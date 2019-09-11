@@ -27,8 +27,8 @@ class BotOwnerDbDebug(commands.Cog):
     @commands.command(hidden=True)
     @commands.is_owner()
     async def force_new_licensed_member(self, ctx, member: discord.Member, role: discord.Role,
-                                        *, license_duration: license_duration):
-        expiration_date = construct_expiration_date(license_duration)
+                                        *, license_dur: license_duration):
+        expiration_date = construct_expiration_date(license_dur)
         await self.bot.main_db.add_new_licensed_member(member.id, ctx.guild.id, expiration_date, role.id)
         await ctx.send(embed=success_embed("Done", ctx.me))
 
@@ -60,6 +60,12 @@ class BotOwnerDbDebug(commands.Cog):
     @commands.is_owner()
     async def force_remove_all_guild_data(self, ctx):
         await self.bot.main_db.remove_all_guild_data(ctx.guild.id)
+        await ctx.send(embed=success_embed("Done", ctx.me))
+
+    @commands.command(hidden=True)
+    @commands.is_owner()
+    async def force_remove_all_guild_licenses(self, ctx):
+        await self.bot.main_db.remove_all_guild_licenses(ctx.guild.id)
         await ctx.send(embed=success_embed("Done", ctx.me))
 
     @commands.command(hidden=True)

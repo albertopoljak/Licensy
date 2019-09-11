@@ -326,6 +326,11 @@ class DatabaseHandler:
         async with self.connection.execute(query, (guild_id, amount)) as cursor:
             return await cursor.fetchall()
 
+    async def remove_all_guild_licenses(self, guild_id: int):
+        query = "DELETE FROM GUILD_LICENSES WHERE GUILD_ID=?"
+        await self.connection.execute(query, (guild_id,))
+        await self.connection.commit()
+
     # ALL TABLES #########################################################################
 
     async def remove_all_guild_data(self, guild_id: int):

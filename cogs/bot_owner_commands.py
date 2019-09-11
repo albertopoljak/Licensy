@@ -1,6 +1,7 @@
 import discord
 from discord.ext import commands
-from helpers.embed_handler import success_embed, failure_embed
+from helpers.embed_handler import success_embed, failure_embed, _simple_embed
+from helpers.misc import tail
 
 
 class BotOwnerCommands(commands.Cog):
@@ -52,6 +53,25 @@ class BotOwnerCommands(commands.Cog):
         self.bot.config.reload_config()
         msg = "Successfully reloaded config."
         await ctx.send(embed=success_embed(msg, ctx.me))
+
+    @commands.command(hidden=True)
+    @commands.is_owner()
+    async def show_log(self, ctx, lines=20):
+        """
+        Shows last n lines from log.txt
+
+        Max lines 200.
+        Sends multiple messages at once if needed.
+        """
+        if lines > 200:
+            lines = 200
+
+        log = "".join(tail(lines))
+        logs = [log[i: i + 1980] for i in range(0, len(log), 1980)]
+        for index, entry in enumerate(logs):
+            embed = _simple_embed(entry, title=f"({index+1}) Last {lines} log lines", color=discord.Colour.red())
+            await ctx.send(embed=embed)
+        await ctx.send(embed=success_embed("Done", ctx.me))
 
 
 def setup(bot):

@@ -63,3 +63,38 @@ def check_create_directory(directory_path: str):
 
 def maximize_size(message: str):
     return (message[:1980] + "...too long") if len(message) > 1980 else message
+
+
+def tail(n=1, _buffer=4098):
+    """
+    Tail a file and get X lines from the end
+    Source: https://stackoverflow.com/a/57277212/11311072
+
+    """
+    with open("logs/log.txt", "r") as f:
+        assert n >= 0
+        pos, lines = n + 1, []
+
+        # set file pointer to end
+
+        f.seek(0, os.SEEK_END)
+
+        is_file_small = False
+
+        while len(lines) <= n:
+            try:
+                f.seek(f.tell() - pos, os.SEEK_SET)
+            except ValueError:
+                # lines greater than file seeking size
+                # seek to start
+                f.seek(0, os.SEEK_SET)
+                is_file_small = True
+            finally:
+                lines = f.readlines()
+                if is_file_small:
+                    break
+
+            pos *= 2
+
+        lines.reverse()
+        return lines[-n:]
