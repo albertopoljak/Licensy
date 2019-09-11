@@ -278,7 +278,6 @@ class LicenseHandler(commands.Cog):
             # for the said role you will get IntegrityError because LICENSED_ROLE_ID and MEMBER_ID have to
             # be unique (and the entry still exists in database).
             # Even when caught by remove role event leave this
-            # TODO: On role remove remove from database too
             try:
                 await self.bot.main_db.add_new_licensed_member(member.id, guild.id, expiration_date, role_id)
             except IntegrityError:
@@ -550,8 +549,6 @@ class LicenseHandler(commands.Cog):
         deleted while it's still in database (similar problem as in check_all_active_licenses)
 
         :param missing_role_id: role that is in db but is missing in guild
-
-        TODO: add event on_guild_role_delete
 
         TODO: on startup/reconnect check if default role from db is valid
 

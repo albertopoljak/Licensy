@@ -15,7 +15,7 @@ class DatabaseHandler:
     DB_EXTENSION = ".sqlite3"
 
     @classmethod
-    async def create(cls, db_name: str = "main", db_backup_prefix: str = "backup"):
+    async def create(cls, db_name: str = "main"):
         """"
         Can't use await in __init__ so we create a factory pattern.
         To correctly create this object you need to call :
@@ -24,14 +24,12 @@ class DatabaseHandler:
         """
         self = DatabaseHandler()
         self.db_name = db_name
-        self.db_backup_prefix = db_backup_prefix
         self.connection = await self._get_connection()
         logger.info("Connection to database established.")
         return self
 
     def __init__(self):
         self.db_name = None
-        self.db_backup_prefix = None
         self.connection = None
 
     async def _get_connection(self) -> aiosqlite.core.Connection:
