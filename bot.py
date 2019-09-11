@@ -79,7 +79,7 @@ async def faq(ctx):
     bot_faq = ("**1. If bot gets kicked/banned do I lose all my data?**\n"
                "All of the guild data is immediately deleted from the database.\n\n"
            
-               "**2. What happens if I delete a role?**\n"
+               "**2. What happens if I delete a role or remove it manually from a member?**\n"
                "If that role is tied to any licenses/active subscriptions "
                "they are immediately deleted from the database.\n\n"
            

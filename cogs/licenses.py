@@ -151,6 +151,13 @@ class LicenseHandler(commands.Cog):
                     f"Removing all database entries.")
         await self.bot.main_db.remove_all_guild_role_data(role.id)
 
+    @commands.Cog.listener()
+    async def on_member_update(self, before, after):
+        if len(before.roles) > len(after.roles):
+            removed_roles_list = list(set(before.roles) - set(after.roles))
+            for role in removed_roles_list:
+                await self.bot.main_db.delete_licensed_member(before.id, role.id)
+
     @commands.command()
     @commands.bot_has_permissions(manage_roles=True)
     @commands.has_permissions(manage_roles=True)
