@@ -8,7 +8,7 @@ from discord.ext import commands
 from database_handler import DatabaseHandler
 from config_handler import ConfigHandler
 from helpers import logger_handlers, embed_handler
-from helpers.embed_handler import success_embed
+from helpers.embed_handler import success_embed, info_embed
 
 root_logger = logging.getLogger()
 root_logger.setLevel(logging.INFO)
@@ -38,12 +38,15 @@ async def prefix_callable(bot_client, message):
         This is also used in DMs where the guild is None
         """
         default_prefix = config_handler.get_default_prefix()
-        root_logger.error(f"Can't get guild {message.guild} prefix. Error:{err}. "
-                          f"Using '{default_prefix}' as prefix.")
+        if message.guild is not None:
+            # Don't spam the log if it's DMs
+            # We only want to log it in case guild prefix is missing
+            root_logger.error(f"Can't get guild {message.guild} prefix. Error:{err}. "
+                              f"Using '{default_prefix}' as prefix.")
         return default_prefix
 
 
-bot = commands.Bot(command_prefix=prefix_callable, description=config_handler.get_description())
+bot = commands.Bot(command_prefix=prefix_callable, description=config_handler.get_description(), case_insensitive=True)
 bot.config = config_handler
 bot.main_db = database_handler
 bot.up_time_start_time = datetime.now()
@@ -60,6 +63,43 @@ if __name__ == "__main__":
             root_logger.error(f"{exc} Failed to load extension {cog_path}")
             traceback_msg = traceback.format_exception(etype=type(e), value=e, tb=e.__traceback__)
             root_logger.warning(traceback_msg)
+
+
+@bot.command()
+async def faq(ctx):
+    """
+    Show common Q/A about bot and it's usage.
+
+    """
+    disclaimer = ("Disclaimer: Bot is currently in alpha phase.\n"
+                  "I am aware of certain security limitations (example points 1&2) "
+                  "and I'll be working on improving it. Please let me know which features"
+                  "/improvements you want so I can focus on those (use support command).")
+
+    bot_faq = ("**1. If bot gets kicked/banned do I lose all my data?**\n"
+               "All of the guild data is immediately deleted from the database.\n\n"
+           
+               "**2. What happens if I delete a role?**\n"
+               "If that role is tied to any licenses/active subscriptions "
+               "they are immediately deleted from the database.\n\n"
+           
+               "**3. What is the precision of role expiration?**\n"
+               "Bot checks for expired licenses on startup and each 5 minutes after startup.\n\n"
+           
+               "**4. Who can view/generate guild licenses?**\n"
+               "Only those who have role administrator in the guild.\n\n"
+           
+               "**5. How are licenses generated, are they unique?**\n"
+               "They are completely unique, comprised of 30 randomly generated characters.\n\n"
+           
+               "**6. What's the maximum for role expire time?**\n"
+               "Bot is coded in a way that theoretically there is no limit, "
+               "but to keep things in sane borders the maximum time for expiry date is 12 months.\n\n"
+           
+               "**7. How many licenses per guild?**\n"
+               "You can have unlimited subscribed members with each having unlimited subscribed roles"
+               " but there is a limit for unactivated licenses which is 100 per guild.")
+    await ctx.send(embed=info_embed(f"{bot_faq}", ctx.me, title=disclaimer))
 
 
 @bot.command(hidden=True)
