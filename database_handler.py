@@ -333,11 +333,20 @@ class DatabaseHandler:
 
     # ALL TABLES #########################################################################
 
-    async def remove_all_guild_data(self, guild_id: int):
-        queries = ["DELETE FROM GUILDS WHERE GUILD_ID=?",
-                   "DELETE FROM LICENSED_MEMBERS WHERE GUILD_ID=?",
+    async def remove_all_guild_data(self, guild_id: int, guild_table_too=False):
+        queries = ["DELETE FROM LICENSED_MEMBERS WHERE GUILD_ID=?",
                    "DELETE FROM GUILD_LICENSES WHERE GUILD_ID=?"]
+        if guild_table_too:
+            queries.append("DELETE FROM GUILDS WHERE GUILD_ID=?")
         for query in queries:
             await self.connection.execute(query, (guild_id,))
+
+        await self.connection.commit()
+
+    async def remove_all_guild_role_data(self, role_id: int):
+        queries = ["DELETE FROM LICENSED_MEMBERS WHERE LICENSED_ROLE_ID=?",
+                   "DELETE FROM GUILD_LICENSES WHERE LICENSED_ROLE_ID=?"]
+        for query in queries:
+            await self.connection.execute(query, (role_id,))
 
         await self.connection.commit()

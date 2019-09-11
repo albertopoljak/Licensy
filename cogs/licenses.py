@@ -137,12 +137,17 @@ class LicenseHandler(commands.Cog):
 
     @commands.Cog.listener()
     async def on_guild_remove(self, guild):
-        # TODO sensitive information removal
-        # TODO to be sure add some sleep before deleting
         guild_id = guild.id
-        logger.info(f"Guild {guild.name} {guild.id} was removed. Removing all database entries.")
+        logger.info(f"Guild '{guild.name}'' {guild.id} was removed. Removing all database entries.")
         await self.bot.main_db.remove_all_guild_data(guild_id)
-        logger.info(f"Guild {guild.name} {guild.id} all database entries successfully removed.")
+        logger.info(f"Guild '{guild.name}'' {guild.id} all database entries successfully removed.")
+
+    @commands.Cog.listener()
+    async def on_guild_role_delete(self, role):
+        guild = role.guild
+        logger.info(f"Role '{role.name}'' {role.id} was removed from guild '{guild.name}'' {guild.id}. "
+                    f"Removing all database entries.")
+        await self.bot.main_db.remove_all_guild_role_data(role.id)
 
     @commands.command()
     @commands.bot_has_permissions(manage_roles=True)
@@ -186,7 +191,7 @@ class LicenseHandler(commands.Cog):
     @commands.command(allieses=["add_license"])
     @commands.has_permissions(administrator=True)
     @commands.guild_only()
-    async def add_license(self, ctx, license, member: discord.Member):
+    async def add_license(self, ctx, member: discord.Member, license):
         """
         Manually add license to member
 
@@ -230,16 +235,23 @@ class LicenseHandler(commands.Cog):
                 except DatabaseMissingData as e:
                     # TODO print role name instead of ID (from e)
                     msg = e.message
-                    msg += "\nThe bot did not register you in the database with that role but somehow you have it." \
-                           "\nThis probably means that you were manually assigned this role " \
-                           "without using the bot license system." \
-                           "\nHave someone remove the role from you and call this command again."
+                    msg += (f"\nThe bot did not register {member.mention} in the database with that role but somehow they have it."
+                            "\nThis probably means that they were manually assigned this role without using the bot license system."
+                            "\nHave someone remove the role from them and call this command again.")
                     await ctx.send(embed=failure_embed(msg))
                     return
 
                 remaining_time = get_remaining_time(expiration_date)
-                msg = (f"{member.mention} you already have an active subscription for the {role.mention} role!"
+                msg = (f"{member.mention} already has an active subscription for the {role.mention} role!"
                        f"\nIt's valid for another {remaining_time}")
+                # Remove the original message not to get license stolen.
+                # It won't guarantee it but at least it will not be in open sight.
+                # If missing delete permission just ignore
+                try:
+                    await ctx.message.delete()
+                except Forbidden:
+                    await ctx.send(embed=failure_embed("I would love to delete that message where you revealed the "
+                                                       "license but I don't have the permission for that :("))
                 await ctx.send(embed=warning_embed(msg))
                 return
             # We add the role to the member, we do this before adding/removing stuff from db
@@ -265,7 +277,7 @@ class LicenseHandler(commands.Cog):
                 # probably offline and couldn't register the role remove event
                 await self.bot.main_db.delete_licensed_member(member.id, role_id)
                 await self.bot.main_db.add_new_licensed_member(member.id, guild.id, expiration_date, role_id)
-                msg = ("Someone removed the role manually from you but no worries,\n"
+                msg = (f"Someone removed the role manually from {member.mention} but no worries,\n"
                        "since the license is valid we're just gonna reactivate it :)")
                 await ctx.send(embed=info_embed(msg, ctx.me))
 
