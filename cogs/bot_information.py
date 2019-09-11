@@ -41,11 +41,14 @@ class Information(commands.Cog):
         Shows bot invite link.
 
         """
-        perms = discord.Permissions()
-        perms.update(manage_roles=True, read_messages=True, send_messages=True)
-        invite_link = discord.utils.oauth_url(self.bot.user.id, permissions=perms)
+        invite_link = self._get_bot_invite_link()
         description = f"Use this **[invite]({invite_link})** to invite me."
         await ctx.send(embed=info_embed(description, ctx.me, title="Invite me :)"))
+
+    def _get_bot_invite_link(self):
+        perms = discord.Permissions()
+        perms.update(manage_roles=True, read_messages=True, send_messages=True, manage_messages=True)
+        return discord.utils.oauth_url(self.bot.user.id, permissions=perms)
 
     @commands.command()
     async def support(self, ctx):
@@ -91,10 +94,10 @@ class Information(commands.Cog):
         io_write_bytes = f"{io_counters.write_bytes/1024/1024:.3f}MB"
         io_count = f"{io_counters.read_count}/{io_counters.write_count}"
 
-        footer = (f"[Invite](https://example.org)"
+        footer = (f"[Invite]({self._get_bot_invite_link()})"
                   f" | [Support]({self.support_server_invite})"
                   f" | [Vote](https://example.org)"
-                  f" | [Website](https://example.org)")
+                  f" | [Website](https://github.com/albertopoljak/Licensy)")
 
         field_content = (f"**Bot ram usage:** {bot_ram_usage_field}\n"
                          f"**Server RAM usage:** {server_ram_usage_field}\n"
@@ -105,8 +108,10 @@ class Information(commands.Cog):
                          f"**IO (r/w/c):** {io_read_bytes} , {io_write_bytes} , {io_count}\n"
                          f"\n**Links:\n**" + footer)
 
+        # If called imidediately after startup it will fail since developers are not yet loaded
+        developers = self.developers if self.developers else ["loading.."]
         fields = {"Last boot": self.last_boot(),
-                  "Developers": "\n".join(self.developers),
+                  "Developers": "\n".join(developers),
                   "Library": "discord.py",
                   "Servers": len(self.bot.guilds),
                   "Average users:": avg_members_string,
