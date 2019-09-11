@@ -13,9 +13,9 @@ class Guild(commands.Cog):
         self.bot = bot
 
     @commands.command()
-    @commands.guild_only()
-    @commands.has_permissions(administrator=True)
     @commands.cooldown(1, 30, commands.BucketType.guild)
+    @commands.has_permissions(administrator=True)
+    @commands.guild_only()
     async def prefix(self, ctx, *, prefix):
         """
         Changes guild prefix.
@@ -31,8 +31,8 @@ class Guild(commands.Cog):
         await ctx.send(embed=success_embed(f"Successfully changed prefix to **{prefix}**", ctx.me))
 
     @commands.command()
-    @commands.guild_only()
     @commands.has_permissions(administrator=True)
+    @commands.guild_only()
     async def default_role(self, ctx, role: discord.Role):
         """
         Changes guild default license role.
@@ -49,8 +49,8 @@ class Guild(commands.Cog):
         await ctx.send(embed=success_embed(f"{role.mention} set as default!", ctx.me))
 
     @commands.command(aliases=["license_expiration", "expiration"])
-    @commands.guild_only()
     @commands.has_permissions(administrator=True)
+    @commands.guild_only()
     async def default_expiration(self, ctx, expiration: license_duration):
         """
         Sets default guild role expiration time.
@@ -78,8 +78,8 @@ class Guild(commands.Cog):
         await ctx.send(embed=success_embed(f"Default license expiration set to **{expiration}h**!", ctx.me))
 
     @commands.command()
-    @commands.guild_only()
     @commands.has_permissions(administrator=True)
+    @commands.guild_only()
     async def guild_info(self, ctx):
         """
         Shows database data for the guild.

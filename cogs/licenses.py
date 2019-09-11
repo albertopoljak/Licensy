@@ -145,9 +145,9 @@ class LicenseHandler(commands.Cog):
         logger.info(f"Guild {guild.name} {guild.id} all database entries successfully removed.")
 
     @commands.command()
-    @commands.guild_only()
     @commands.bot_has_permissions(manage_roles=True)
     @commands.has_permissions(manage_roles=True)
+    @commands.guild_only()
     async def revoke(self, ctx, member: discord.Member, role: discord.Role):
         """
         Revoke active subscription from member.
@@ -169,8 +169,8 @@ class LicenseHandler(commands.Cog):
         await ctx.send(embed=success_embed(msg, ctx.me))
 
     @commands.command(aliases=["activate"])
-    @commands.guild_only()
     @commands.bot_has_permissions(manage_roles=True)
+    @commands.guild_only()
     async def redeem(self, ctx, license):
         """
         Adds role to member who invoked the command.
@@ -184,8 +184,8 @@ class LicenseHandler(commands.Cog):
         await self.activate_license(ctx, license, ctx.author)
 
     @commands.command(allieses=["add_license"])
-    @commands.guild_only()
     @commands.has_permissions(administrator=True)
+    @commands.guild_only()
     async def add_license(self, ctx, license, member: discord.Member):
         """
         Manually add license to member
@@ -278,9 +278,9 @@ class LicenseHandler(commands.Cog):
             await ctx.send(embed=failure_embed("The license key you entered is invalid/deactivated."))
 
     @commands.command()
-    @commands.guild_only()
     @commands.cooldown(1, 10, commands.BucketType.guild)
     @commands.has_permissions(administrator=True)
+    @commands.guild_only()
     async def generate(self, ctx, num: positive_integer = 3, license_role: discord.Role = None,
                        *, license_duration: license_duration = None):
         """
@@ -374,9 +374,9 @@ class LicenseHandler(commands.Cog):
         await ctx.author.send(f"```{misc.maximize_size(dm_msg)}```")
 
     @commands.command(aliases=["licences"])
-    @commands.guild_only()
     @commands.cooldown(1, 10, commands.BucketType.guild)
     @commands.has_permissions(administrator=True)
+    @commands.guild_only()
     async def licenses(self, ctx, license_role: discord.Role = None):
         """
         Shows up to 15 licenses in DM.
@@ -424,9 +424,9 @@ class LicenseHandler(commands.Cog):
         await ctx.send(embed=success_embed("Sent to DM!", ctx.me), delete_after=5)
 
     @commands.command(alliases=["random_licenses"])
-    @commands.guild_only()
     @commands.cooldown(1, 10, commands.BucketType.guild)
     @commands.has_permissions(administrator=True)
+    @commands.guild_only()
     async def random_license(self, ctx, x: int = 1):
         """
         Shows random x guild licenses in DM.
@@ -508,8 +508,8 @@ class LicenseHandler(commands.Cog):
         await ctx.author.send(f"```{misc.maximize_size(message)}```")
 
     @commands.command()
-    @commands.guild_only()
     @commands.has_permissions(administrator=True)
+    @commands.guild_only()
     async def delete_license(self, ctx, license):
         """
         Deletes specified license.
