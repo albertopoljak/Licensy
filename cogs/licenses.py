@@ -9,7 +9,7 @@ import discord.utils
 from aiosqlite import IntegrityError
 from helpers import misc
 from helpers.converters import positive_integer, license_duration
-from helpers.errors import RoleNotFound, DatabaseMissingData
+from helpers.errors import RoleNotFound, DatabaseMissingData, GuildNotFound
 from helpers.licence_helper import construct_expiration_date, get_remaining_time
 from helpers.embed_handler import success_embed, warning_embed, failure_embed, info_embed
 
@@ -45,13 +45,6 @@ class LicenseHandler(commands.Cog):
         Checks all active member licenses in database and if license is expired then remove
         the role from member and send some message.
 
-        TODO: In rare case, when the bot is offline for whatever reason (outage, lag etc) and
-        TODO: if in that time window the bot is kicked out of guild then we will get exceptions
-        TODO: when removing roles from members because those members are still in database
-        TODO: but the bot cannot access them because it was kicked (usually we handle that in
-        TODO: on_guild_remove event). So TODO add check if all guilds are available, if not
-        TODO: then remove everything from database associated with it.
-
         TODO: Move query to database handler
 
         """
@@ -65,11 +58,20 @@ class LicenseHandler(commands.Cog):
                     logger.info(f"Expired license for member:{member_id} role:{licensed_role_id} guild:{member_guild_id}")
                     try:
                         await self.remove_role(member_id, member_guild_id, licensed_role_id)
-                    except RoleNotFound:
+                    except RoleNotFound as e1:
+                        logger.warning(e1)
                         logger.warning(f"Role expired but can't be removed from member because he doesn't have it! "
                                        f"Someone must have manually removed it before it expired.\t"
                                        f"Member ID:{member_id}, guild ID:{member_guild_id}, role ID:{licensed_role_id}"
                                        f"Continuing to db entry removal...")
+                    except GuildNotFound as e2:
+                        # If guild is not found log it and continue to guild database deletion
+                        logger.warning(e2)
+                        logger.warning(f"Guild {member_guild_id} saved in database but not found in bot guilds!"
+                                       "Removing all entries of it from database!")
+                        await self.bot.main_db.remove_all_guild_data(member_guild_id, guild_table_too=True)
+                        logger.info(f"Successfully deleted all database data for guild {member_guild_id}")
+                        return
                     await self.bot.main_db.delete_licensed_member(member_id, licensed_role_id)
                     logger.info(f"Role {licensed_role_id} successfully removed from member:{member_id}")
 
@@ -103,8 +105,8 @@ class LicenseHandler(commands.Cog):
         """
         guild = self.bot.get_guild(guild_id)
         if guild is None:
-            raise Exception(f"Fatal exception. "
-                            f"Guild **{guild_id}** loaded from database cannot be found in bot guilds!")
+            raise GuildNotFound(f"Fatal exception. "
+                                f"Guild **{guild_id}** loaded from database cannot be found in bot guilds!")
 
         member = guild.get_member(member_id)
 
