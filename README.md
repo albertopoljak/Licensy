@@ -19,6 +19,52 @@ Both role and expiration time are tied to license.
 
 You can make all of your roles subscribable and each license can have different expiration date.
 
+Licenses are unique and random.
+
+Made with security in mind and to work independently with multiple guilds.
+
+## Quickstart bot usage
+
+Default prefix is `!`
+  
+Call `!help` to see available commands.
+
+Call `!help command_name` to see additional help for that specific command.
+
+After the bot joined the guild:
+
+`!default_role @role_here`
+
+`!generate 5`
+
+Optional (so you have more information):
+
+`!guild_info`
+
+`!help`
+
+`!help generate`
+
+## Permissions needed
+
+Bot needs certain permissions to operate, here they are explained:
+
+- read_messages=True
+  - Needed so bot can see commands being called, otherwise nothing will happen
+when using a command.
+
+- send_messages=True
+  - For sending feedback to guild (success, failure, errors, info)
+
+- manage_roles=True
+  - For actually adding/removing licensed roles from members.
+  
+- manage_messages=True
+  - In case there is error when redeeming the license your original message
+showing license gets deleted to minimize chances of stealing.
+This happens for example if you redeem license for a role you **already**
+have.
+
 ## Requirements
 
 You need Python 3.6 or later and packages from `requirements.txt`
@@ -31,7 +77,7 @@ For other Linux flavors, macOS and Windows, packages are available at
 
   http://www.python.org/getit/
 
-## Usage
+## Quickstart source code
 
 ```bash
 $ cd Licensy
@@ -53,48 +99,12 @@ After that you are ready to run it:
 $ python3 bot.py
 ```
 
-## What is it?
-
-Role license subscription bot. 
-
-Generate and manage licenses which, when redeemed by a member, add certain role
-to the member in
-
-Bulk create licenses with custom or default values or bulk print them.
-
-Licenses are unique and random.
-
-Made with security in mind and to work independently with multiple guilds.
-
-## Example usage
-
-Also see [Quickstart](#quickstart)
-
-After the bot joined the guild:
-
-!default_role @role_here
-
-!guild_info
-
-!help
-
-!help generate
-
-!generate 5
-
-## Quickstart 
-
-Assuming you've read the [Usage](#usage) and have started the bot:
-
 Upon startup the bot will create what it needs (if it's missing), this includes:
 log file and database file, including folders for them.
 
 Invite the bot to any guild, it will create database guild entry upon joining.
-Default prefix is `!`
-  
-Bot is ready to use! Call `!help` to see available commands.
 
-Call `!help command_name` to see additional help for that specific command.
+Further steps on how to use the bot are in [Quickstart bot usage](#quickstart bot usage)
 
 ## Authors
 
