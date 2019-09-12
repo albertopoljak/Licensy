@@ -44,6 +44,7 @@ Optional (so you have more information):
 !guild_info
 !help
 !help generate
+!faq
 ```
 
 ## Permissions needed
