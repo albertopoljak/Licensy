@@ -12,8 +12,10 @@ from helpers.embed_handler import success_embed, info_embed
 
 root_logger = logging.getLogger()
 root_logger.setLevel(logging.INFO)
-root_logger.addHandler(logger_handlers.get_console_handler())
+#root_logger.addHandler(logger_handlers.get_console_handler())
 root_logger.addHandler(logger_handlers.get_file_handler())
+logger = logging.getLogger("discord")
+logger.setLevel(logging.WARNING)
 
 config_handler = ConfigHandler()
 database_handler = asyncio.get_event_loop().run_until_complete(DatabaseHandler.create())
@@ -22,7 +24,6 @@ startup_extensions = ["licenses",
                       "bot_owner_commands",
                       "guild",
                       "bot_information",
-                      "games",
                       "bot_owner_db_debug",
                       "cmd_errors"]
 
