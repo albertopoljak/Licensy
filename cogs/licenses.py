@@ -202,7 +202,7 @@ class LicenseHandler(commands.Cog):
     @commands.guild_only()
     async def add_license(self, ctx, member: discord.Member, license):
         """
-        Manually add license to member
+        Manually add license to member.
 
         """
         await self.activate_license(ctx, license, member)

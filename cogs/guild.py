@@ -35,7 +35,7 @@ class Guild(commands.Cog):
     @commands.guild_only()
     async def default_role(self, ctx, role: discord.Role):
         """
-        Changes guild default license role.
+        Changes default guild license role.
 
         When creating new license, and role is not passed, this is the default role the license will use.
         Role tied to license is the role that the member will get when he redeems it.

@@ -25,6 +25,7 @@ startup_extensions = ["licenses",
                       "guild",
                       "bot_information",
                       "bot_owner_db_debug",
+                      "help",
                       "cmd_errors"]
 
 
@@ -64,43 +65,6 @@ if __name__ == "__main__":
             root_logger.error(f"{exc} Failed to load extension {cog_path}")
             traceback_msg = traceback.format_exception(etype=type(e), value=e, tb=e.__traceback__)
             root_logger.warning(traceback_msg)
-
-
-@bot.command()
-async def faq(ctx):
-    """
-    Show common Q/A about bot and it's usage.
-
-    """
-    disclaimer = ("Disclaimer: Bot is currently in alpha phase.\n"
-                  "I am aware of certain security limitations (example points 1&2) "
-                  "and I'll be working on improving it. Please let me know which features"
-                  "/improvements you want so I can focus on those (use support command).")
-
-    bot_faq = ("**1. If bot gets kicked/banned do I lose all my data?**\n"
-               "All of the guild data is immediately deleted from the database.\n\n"
-           
-               "**2. What happens if I delete a role or remove it manually from a member?**\n"
-               "If that role is tied to any licenses/active subscriptions "
-               "they are immediately deleted from the database.\n\n"
-           
-               "**3. What is the precision of role expiration?**\n"
-               "Bot checks for expired licenses on startup and each 10 minutes after startup.\n\n"
-           
-               "**4. Who can view/generate guild licenses?**\n"
-               "Only those who have role administrator in the guild.\n\n"
-           
-               "**5. How are licenses generated, are they unique?**\n"
-               "They are completely unique, comprised of 30 randomly generated characters.\n\n"
-           
-               "**6. What's the maximum for role expire time?**\n"
-               "Bot is coded in a way that theoretically there is no limit, "
-               "but to keep things in sane borders the maximum time for expiry date is 12 months.\n\n"
-           
-               "**7. How many licenses per guild?**\n"
-               "You can have unlimited subscribed members with each having unlimited subscribed roles"
-               " but there is a limit for unactivated licenses which is 100 per guild.")
-    await ctx.send(embed=info_embed(f"{bot_faq}", ctx.me, title=disclaimer))
 
 
 @bot.command(hidden=True)
