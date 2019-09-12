@@ -141,7 +141,7 @@ class LicenseHandler(commands.Cog):
     async def on_guild_remove(self, guild):
         guild_id = guild.id
         logger.info(f"Guild '{guild.name}'' {guild.id} was removed. Removing all database entries.")
-        await self.bot.main_db.remove_all_guild_data(guild_id)
+        await self.bot.main_db.remove_all_guild_data(guild_id, guild_table_too=True)
         logger.info(f"Guild '{guild.name}'' {guild.id} all database entries successfully removed.")
 
     @commands.Cog.listener()

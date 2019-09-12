@@ -137,7 +137,11 @@ class DatabaseHandler:
             try:
                 return int(row[0])
             except TypeError:
-                raise DefaultGuildRoleNotSet("Default guild license not set!")
+                raise DefaultGuildRoleNotSet("Default guild license not set!\n\n"
+                                             "For more information call command:\n"
+                                             "{prefix}help default_role\n\n"
+                                             "If still in doubt call:\n"
+                                             "{prefix}help")
 
     async def get_default_guild_license_duration_hours(self, guild_id: int) -> int:
         """

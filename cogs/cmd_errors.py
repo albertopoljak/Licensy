@@ -116,7 +116,8 @@ class CmdErrors(commands.Cog):
             return
 
         if isinstance(error, DefaultGuildRoleNotSet):
-            await ctx.send(embed=failure_embed(f"Trying to use default guild license but: {error.message}"))
+            new_msg = error.message.replace("{prefix}", ctx.prefix)
+            await ctx.send(embed=failure_embed(f"Trying to use default guild license but: {new_msg}"))
             return
 
         if isinstance(error, DatabaseMissingData):
