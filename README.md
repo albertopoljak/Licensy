@@ -26,6 +26,8 @@ Made with security in mind and to work independently with multiple guilds.
 ## Quickstart bot usage
 
 Default prefix is `!`
+
+Default license expiration time is 720h aka 30 days.
   
 Call `!help` to see available commands.
 
