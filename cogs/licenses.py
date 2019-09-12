@@ -36,9 +36,9 @@ class LicenseHandler(commands.Cog):
                 await self.check_all_active_licenses()
             except Exception as e:
                 logger.critical(e)
-            logger.info("License check done.")
-            # Sleep 15 minutes
-            await asyncio.sleep(900)
+            logger.debug("License check done.")
+            # Sleep 10 minutes
+            await asyncio.sleep(600)
 
     async def check_all_active_licenses(self):
         """

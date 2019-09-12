@@ -68,7 +68,19 @@ Made with security in mind and to work independently with multiple guilds.
 
 ## Example usage
 
-Currently in development. See [Quickstart](#quickstart)
+Also see [Quickstart](#quickstart)
+
+After the bot joined the guild:
+
+!default_role @role_here
+
+!guild_info
+
+!help
+
+!help generate
+
+!generate 5
 
 ## Quickstart 
 
@@ -81,6 +93,8 @@ Invite the bot to any guild, it will create database guild entry upon joining.
 Default prefix is `!`
   
 Bot is ready to use! Call `!help` to see available commands.
+
+Call `!help command_name` to see additional help for that specific command.
 
 ## Authors
 
