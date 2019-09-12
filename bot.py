@@ -89,6 +89,21 @@ async def unload(ctx, extension_path):
     await ctx.send(embed=success_embed(f"{extension_path} unloaded.", ctx.me))
 
 
+@bot.command(hidden=True)
+async def disconnect(ctx):
+    """
+    Closes database connection and disconnects the bot.
+
+    Used for gracefully shutting it down in need of update.
+
+    """
+    await bot.main_db.commit()
+    await bot.main_db.close()
+    root_logger.info("Database closed.")
+    await bot.logout()
+    root_logger.info("Disconnected.")
+
+
 @bot.event
 async def on_connect():
     root_logger.info("Connection to Discord established")
