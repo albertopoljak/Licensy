@@ -3,7 +3,7 @@ import logging
 from datetime import datetime
 from dateutil import parser
 import texttable
-from discord.ext import commands
+from discord.ext import commands, tasks
 from discord.errors import Forbidden
 import discord.utils
 from aiosqlite import IntegrityError
@@ -19,26 +19,20 @@ logger = logging.getLogger(__name__)
 class LicenseHandler(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.bot.loop.create_task(self.license_check_loop())
+        self.license_check.start()
 
-    async def license_check_loop(self):
-        while True:
-            # Wait until the event is set.
-            # (if the event is set, return True immediately, otherwise block until task calls set())
-            # wait_until_ready is set only once, when bot internal cache is loaded.
-            # Need to wait because on startup if license is expired functions here will try
-            # to get guild/member/role objects before the bot is even loaded thus resulting in exception.
-            await self.bot.wait_until_ready()
-            # Do not stop license check loop just because of error
-            # Error can happen in rare cases, for example if the guild from db is not found
-            # in loaded guilds of the bot.
-            try:
-                await self.check_all_active_licenses()
-            except Exception as e:
-                logger.critical(e)
-            logger.debug("License check done.")
-            # Sleep 10 minutes
-            await asyncio.sleep(600)
+    @tasks.loop(seconds=5.0)
+    async def license_check(self):
+        try:
+            await self.check_all_active_licenses()
+        except Exception as e:
+            logger.critical(e)
+
+    @license_check.before_loop
+    async def before_printer(self):
+        logger.info("Starting license check loop..")
+        await self.bot.wait_until_ready()
+        logger.info("License check loop started!")
 
     async def check_all_active_licenses(self):
         """
