@@ -33,39 +33,48 @@ Call `!help command_name` to see additional help for that specific command.
 
 After the bot joined the guild:
 
-`!default_role @role_here`
-
-`!generate 5`
+```bash
+!default_role @role_here
+!generate 5
+```
 
 Optional (so you have more information):
 
-`!guild_info`
-
-`!help`
-
-`!help generate`
+```bash
+!guild_info
+!help
+!help generate
+```
 
 ## Permissions needed
 
 Bot needs certain permissions to operate, here they are explained:
 
-- read_messages=True
-  - Needed so bot can see commands being called, otherwise nothing will happen
+```bash
+read_messages=True
+```
+- Needed so bot can see commands being called, otherwise nothing will happen
 when using a command.
 
-- send_messages=True
-  - For sending feedback to guild (success, failure, errors, info)
+```bash
+send_messages=True
+```
+- For sending feedback to guild (success, failure, errors, info)
 
-- manage_roles=True
-  - For actually adding/removing licensed roles from members.
-  
-- manage_messages=True
-  - In case there is error when redeeming the license your original message
+```bash
+manage_roles=True
+```
+- For actually adding/removing licensed roles from members.
+
+```bash
+manage_messages=True
+```
+- In case there is error when redeeming the license your original message
 showing license gets deleted to minimize chances of stealing.
 This happens for example if you redeem license for a role you **already**
 have.
 
-## Requirements
+## Requirements for source
 
 You need Python 3.6 or later and packages from `requirements.txt`
 
