@@ -13,7 +13,10 @@ class PrettyHelpCommand(MinimalHelpCommand):
                 "You can also type {0}{1} <category> for more info on a category.").format(self.clean_prefix, command_name)
 
     def get_opening_note(self):
-        return
+        if self.context.author.guild_permissions.administrator:
+            return
+        else:
+            return "Commands that you have no permission for are hidden."
 
     def add_bot_commands_formatting(self, commands, heading):
         if commands:
