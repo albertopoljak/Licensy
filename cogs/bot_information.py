@@ -96,7 +96,7 @@ class Information(commands.Cog):
 
         footer = (f"[Invite]({self._get_bot_invite_link()})"
                   f" | [Support]({self.support_server_invite})"
-                  f" | [Vote](https://example.org)"
+                  f" | [Vote](https://discordbots.org/bot/604057722878689324)"
                   f" | [Website](https://github.com/albertopoljak/Licensy)")
 
         field_content = (f"**Bot ram usage:** {bot_ram_usage_field}\n"

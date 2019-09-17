@@ -3,7 +3,8 @@
 </p>
 
 [![Licensy vAplha](https://img.shields.io/badge/Licensy-alpha-yellow)](#)
-[![Invite me!](https://img.shields.io/badge/-Invite%20me-7289DA)](https://discordapp.com/oauth2/authorize?client_id=604057722878689324&scope=bot&permissions=268446720)
+[![Invite me!](https://img.shields.io/badge/-Invite%20me-gray?logo=discord)](https://discordapp.com/oauth2/authorize?client_id=604057722878689324&scope=bot&permissions=268446720)
+[![Upvote me](https://img.shields.io/badge/-Upvote%20me-7289DA)](https://discordbots.org/bot/604057722878689324)
 [![Discord support server](https://img.shields.io/discord/613844667611611332?color=%237289DA&label=Support%20Server&logo=discord)](https://discord.gg/trCYUkz)
 [![Activity](https://img.shields.io/github/commit-activity/w/albertopoljak/Licensy)](https://github.com/albertopoljak/Licensy/pulse)
 [![Contributions welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg?style=flat)](#)
