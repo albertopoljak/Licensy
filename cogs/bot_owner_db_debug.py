@@ -70,13 +70,21 @@ class BotOwnerDbDebug(commands.Cog):
 
     @commands.command(hidden=True)
     @commands.is_owner()
-    async def db(self, ctx):
-        """
-        Prints entire database
-        For testing purposes
+    async def show_guilds(self, ctx):
+        limit = 100
+        to_print = ["\nJoined guilds:\n\n"]
+        for i, guild in enumerate(self.bot.guilds):
+            if i == limit:
+                break
+            to_print.append(f"{guild.id}:{guild.name}\n")
 
-        """
-        to_print = []
+        string_output = "".join(to_print)
+        await ctx.send(embed=success_embed(misc.maximize_size(string_output), ctx.me))
+
+    @commands.command(hidden=True)
+    @commands.is_owner()
+    async def show_db_guilds(self, ctx):
+        to_print = ["\nTable GUILDS:\n\n"]
         cur = await self.bot.main_db.connection.cursor()
 
         async def print_cursor(cursor):
@@ -87,22 +95,31 @@ class BotOwnerDbDebug(commands.Cog):
                 to_print.append("\n")
 
         await cur.execute("SELECT * FROM GUILDS LIMIT 100")
-        to_print.append("\nTable GUILDS:\n")
         await print_cursor(cur)
-
-        await cur.execute("SELECT * FROM LICENSED_MEMBERS LIMIT 1000")
-        to_print.append("\nTable LICENSED_MEMBERS:\n")
-        await print_cursor(cur)
-
-        await cur.execute("SELECT * FROM GUILD_LICENSES LIMIT 10000")
-        to_print.append("\nTable GUILD_LICENSES:\n")
-        await print_cursor(cur)
-
         await cur.close()
 
         string_output = "".join(to_print)
-        logger.info(string_output)
-        await ctx.send(misc.maximize_size(string_output))
+        await ctx.send(embed=success_embed(misc.maximize_size(string_output), ctx.me))
+
+    @commands.command(hidden=True)
+    @commands.is_owner()
+    async def show_db_active_licensed_members(self, ctx):
+        to_print = ["\nTable LICENSED_MEMBERS:\n\n"]
+        cur = await self.bot.main_db.connection.cursor()
+
+        async def print_cursor(cursor):
+            results = await cursor.fetchall()
+            for row in results:
+                for record in range(len(row)):
+                    to_print.append(f"{row[record]} ")
+                to_print.append("\n")
+
+        await cur.execute("SELECT * FROM LICENSED_MEMBERS LIMIT 100")
+        await print_cursor(cur)
+        await cur.close()
+
+        string_output = "".join(to_print)
+        await ctx.send(embed=success_embed(misc.maximize_size(string_output), ctx.me))
 
 
 def setup(bot):
