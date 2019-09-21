@@ -121,6 +121,11 @@ class BotOwnerDbDebug(commands.Cog):
         string_output = "".join(to_print)
         await ctx.send(embed=success_embed(misc.maximize_size(string_output), ctx.me))
 
+    @commands.command(hidden=True)
+    @commands.is_owner()
+    async def show_user_count(self, ctx):
+        await ctx.send(embed=success_embed(f"Serving {len(self.bot.users)} users!", ctx.me))
+
 
 def setup(bot):
     bot.add_cog(BotOwnerDbDebug(bot))
