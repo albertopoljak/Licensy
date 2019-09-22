@@ -10,6 +10,14 @@ class BotOwnerCommands(commands.Cog):
 
     @commands.command(hidden=True)
     @commands.is_owner()
+    async def update(self, ctx, *, msg=None):
+        if msg is None:
+            msg = """Update in progress.
+                    Non breaking changes that will not affect bot usage/performance."""
+        await self.bot.change_presence(activity=discord.Game(name=msg))
+
+    @commands.command(hidden=True)
+    @commands.is_owner()
     async def playing(self, ctx, *, game):
         await self.bot.change_presence(activity=discord.Game(name=game))
         msg = f"Successfully set presence to **Playing {game}**."
