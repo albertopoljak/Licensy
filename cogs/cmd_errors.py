@@ -17,6 +17,18 @@ class CmdErrors(commands.Cog):
 
     @commands.Cog.listener()
     async def on_command_error(self, ctx, error):
+        # In some cases I get "Forbidden" error in logs
+        # Meaning the member called non-existing command but the bot couldn't
+        # send error message because it doesn't have permission to send in that channel
+        # Now this is weird because I specifically every time get "Command not found."
+        # How come they always call non-existing command?
+        # This is for better logging and debugging to see what's going on
+        logger.warning(f"on_command_error ||| "
+                       f"Guild:{ctx.guild} ||| "
+                       f"Author:{ctx.author} ||| "
+                       f"Channel:{ctx.channel} ||| "
+                       f"Called (without prefix):{ctx.command}")
+
         # If command has local error handler, return
         if hasattr(ctx.command, "on_error"):
             return

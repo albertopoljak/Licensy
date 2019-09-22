@@ -175,6 +175,7 @@ class LicenseHandler(commands.Cog):
         await self.bot.main_db.delete_licensed_member(member.id, role.id)
         msg = f"Successfully revoked subscription for {role.mention} from {member.mention}"
         await ctx.send(embed=success_embed(msg, ctx.me))
+        logger.info(f"{ctx.author} is revoking subscription for role {role} from member {member} in guild {ctx.guild}")
 
     @commands.command(aliases=["activate"])
     @commands.bot_has_permissions(manage_roles=True)
@@ -200,6 +201,7 @@ class LicenseHandler(commands.Cog):
 
         """
         await self.activate_license(ctx, license, member)
+        logger.info(f"{ctx.author} is adding license {license} to member {member} in guild {ctx.guild}")
 
     async def activate_license(self, ctx, license, member):
         """
@@ -533,6 +535,7 @@ class LicenseHandler(commands.Cog):
         if await self.bot.main_db.is_valid_license(license, ctx.guild.id):
             await self.bot.main_db.delete_license(license)
             await ctx.send(embed=success_embed("License deleted.", ctx.me))
+            logger.info(f"{ctx.author} is deleting license {license} from guild {ctx.guild}")
         else:
             await ctx.send(embed=failure_embed("License not valid."))
 
