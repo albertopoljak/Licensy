@@ -21,7 +21,7 @@ class LicenseHandler(commands.Cog):
         self.bot = bot
         self.license_check.start()
 
-    @tasks.loop(seconds=5.0)
+    @tasks.loop(seconds=60.0)
     async def license_check(self):
         try:
             await self.check_all_active_licenses()

@@ -67,7 +67,7 @@ class Help(commands.Cog):
                    "they are immediately deleted from the database.\n\n"
 
                    "**3. What is the precision of role expiration?**\n"
-                   "Bot checks for expired licenses on startup and each 10 minutes after startup.\n\n"
+                   "Bot checks for expired licenses on startup and each 60 seconds after startup.\n\n"
 
                    "**4. Who can view/generate guild licenses?**\n"
                    "Only those who have role administrator in the guild.\n\n"
