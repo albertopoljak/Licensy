@@ -24,6 +24,7 @@ class Information(commands.Cog):
     async def ping(self, ctx):
         """
         Show bot ping.
+
         First value is  time needed to send message & edit message.
         Second value is the actual latency between bot and discord.
 
@@ -82,7 +83,7 @@ class Information(commands.Cog):
         bot_cpu_usage = self.process.cpu_percent()
         if bot_cpu_usage > 100:
             bot_cpu_usage = bot_cpu_usage / cpu_count
-        bot_cpu_usage_field = f"{bot_cpu_usage}%"
+        bot_cpu_usage_field = construct_load_bar_string(bot_cpu_usage)
 
         server_cpu_usage = psutil.cpu_percent()
         if server_cpu_usage > 100:
@@ -92,23 +93,27 @@ class Information(commands.Cog):
         io_counters = self.process.io_counters()
         io_read_bytes = f"{io_counters.read_bytes/1024/1024:.3f}MB"
         io_write_bytes = f"{io_counters.write_bytes/1024/1024:.3f}MB"
-        io_count = f"{io_counters.read_count}/{io_counters.write_count}"
+
+        # Embeds are not monospaced so we need to use spaces to make lines "align"
+        # But discord doesn't like spaces and strips them down.
+        # Using a combination of zero width space + regular space solves stripping problem.
+        embed_space = "\u200b "
 
         footer = (f"[Invite]({self._get_bot_invite_link()})"
                   f" | [Support]({self.support_server_invite})"
                   f" | [Vote](https://discordbots.org/bot/604057722878689324)"
                   f" | [Website](https://github.com/albertopoljak/Licensy)")
 
-        field_content = (f"**Bot ram usage:** {bot_ram_usage_field}\n"
-                         f"**Server RAM usage:** {server_ram_usage_field}\n"
-                         f"**Server swap usage:** {psutil.swap_memory().percent}%\n"
-                         f"**Server cores:** {cpu_count}\n"
-                         f"**Bot CPU usage:** {bot_cpu_usage_field}\n"
-                         f"**Server CPU usage:** {server_cpu_usage_field}\n"
-                         f"**IO (r/w/c):** {io_read_bytes} , {io_write_bytes} , {io_count}\n"
+        # The weird numbers is just guessing number of spaces so the lines align
+        # Needed since embeds are not monospaced font
+        field_content = (f"**Bot RAM usage:**{embed_space*7}{bot_ram_usage_field}\n"
+                         f"**Server RAM usage:**{embed_space}{server_ram_usage_field}\n"
+                         f"**Bot CPU usage:**{embed_space*9}{bot_cpu_usage_field}\n"
+                         f"**Server CPU usage:**{embed_space*3}{server_cpu_usage_field}\n"
+                         f"**IO (r/w):** {io_read_bytes} / {io_write_bytes}\n"
                          f"\n**Links:\n**" + footer)
 
-        # If called imidediately after startup it will fail since developers are not yet loaded
+        # If called immediately after startup it will fail since developers are not yet loaded
         developers = self.developers if self.developers else ["loading.."]
         fields = {"Last boot": self.last_boot(),
                   "Developers": "\n".join(developers),
@@ -118,6 +123,7 @@ class Information(commands.Cog):
                   "Commands": len(self.bot.commands),
                   "Server info": field_content,
                   }
+
         embed = construct_embed(author=ctx.me, **fields)
         await ctx.send(embed=embed)
 
