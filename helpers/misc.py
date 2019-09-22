@@ -98,3 +98,10 @@ def tail(n=1, _buffer=4098):
 
         lines.reverse()
         return lines[-n:]
+
+
+# Embeds are not monospaced so we need to use spaces to make different lines "align"
+# But discord doesn't like spaces and strips them down.
+# Using a combination of zero width space + regular space solves stripping problem.
+embed_space = "\u200b "
+

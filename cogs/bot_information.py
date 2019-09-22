@@ -5,7 +5,7 @@ import discord
 import logging
 from datetime import datetime
 from discord.ext import commands
-from helpers.misc import construct_load_bar_string, construct_embed, time_ago
+from helpers.misc import construct_load_bar_string, construct_embed, time_ago, embed_space
 from helpers.embed_handler import info_embed
 
 logger = logging.getLogger(__name__)
@@ -93,11 +93,6 @@ class Information(commands.Cog):
         io_counters = self.process.io_counters()
         io_read_bytes = f"{io_counters.read_bytes/1024/1024:.3f}MB"
         io_write_bytes = f"{io_counters.write_bytes/1024/1024:.3f}MB"
-
-        # Embeds are not monospaced so we need to use spaces to make lines "align"
-        # But discord doesn't like spaces and strips them down.
-        # Using a combination of zero width space + regular space solves stripping problem.
-        embed_space = "\u200b "
 
         footer = (f"[Invite]({self._get_bot_invite_link()})"
                   f" | [Support]({self.support_server_invite})"

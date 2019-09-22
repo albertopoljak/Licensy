@@ -1,12 +1,13 @@
 import logging
+import discord
 from discord.ext import commands
-from discord.ext.commands import MinimalHelpCommand
 from helpers.embed_handler import info_embed
+from helpers.misc import embed_space
 
 logger = logging.getLogger(__name__)
 
 
-class PrettyHelpCommand(MinimalHelpCommand):
+class PrettyHelpCommand(commands.MinimalHelpCommand):
     def get_ending_note(self):
         command_name = self.invoked_with
         return ("Type {0}{1} <command> for more info on a command.\n"
@@ -21,15 +22,16 @@ class PrettyHelpCommand(MinimalHelpCommand):
     def add_bot_commands_formatting(self, commands, heading):
         if commands:
             max_length = 19
-            outputs = [f"  {c.name}{' ' * (max_length - len(c.name))}{c.short_doc}" for c in commands]
+            outputs = [f"`  {c.name}{embed_space * (max_length - len(c.name))}{c.short_doc}`" for c in commands]
             joined = "\n".join(outputs)
-            self.paginator.add_line(heading)
+            self.paginator.add_line(f"\n**__{heading}__**")
             self.paginator.add_line(joined)
 
     async def send_pages(self):
         destination = self.get_destination()
         for page in self.paginator.pages:
-            await destination.send(f"```{page}```")
+            embed = discord.Embed(title=discord.Embed.Empty, description=page, color=self.context.me.top_role.color)
+            await destination.send(embed=embed)
 
 
 class Help(commands.Cog):
