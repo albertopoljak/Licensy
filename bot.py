@@ -8,7 +8,7 @@ from discord.ext import commands
 from database_handler import DatabaseHandler
 from config_handler import ConfigHandler
 from helpers import logger_handlers, embed_handler
-from helpers.embed_handler import success_embed, info_embed
+from helpers.embed_handler import success_embed
 
 root_logger = logging.getLogger()
 root_logger.setLevel(logging.INFO)
@@ -97,6 +97,7 @@ async def disconnect(ctx):
     Used for gracefully shutting it down in need of update.
 
     """
+    await ctx.send(embed=success_embed("Shutting down..", ctx.me))
     await bot.main_db.commit()
     await bot.main_db.close()
     root_logger.info("Database closed.")

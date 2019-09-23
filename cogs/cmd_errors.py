@@ -1,12 +1,10 @@
 import math
 import logging
 import traceback
-import discord
 from discord.ext import commands
 from discord.errors import Forbidden
 from helpers.errors import RoleNotFound, DefaultGuildRoleNotSet, DatabaseMissingData
-from helpers import embed_handler
-from helpers.embed_handler import failure_embed
+from helpers.embed_handler import failure_embed, log_embed, traceback_embed
 
 logger = logging.getLogger(__name__)
 
@@ -80,7 +78,7 @@ class CmdErrors(commands.Cog):
         if isinstance(error, commands.NoPrivateMessage):
             try:
                 await ctx.author.send(embed=failure_embed("This command cannot be used in direct messages."))
-            except discord.Forbidden:
+            except Forbidden:
                 pass
             return
 
@@ -132,11 +130,11 @@ class CmdErrors(commands.Cog):
         logger.critical(traceback_message)
         if self.bot.is_ready():
             log_channel = self.bot.get_channel(self.bot.config.get_developer_log_channel_id())
-            embed = embed_handler.log_embed(exception_message, ctx=ctx, title="Command error!")
-            traceback_embed = embed_handler.traceback_embed(traceback_message)
+            embed = log_embed(exception_message, ctx=ctx, title="Command error!")
+            trace_embed = traceback_embed(traceback_message)
             if log_channel is not None:
                 await log_channel.send(embed=embed)
-                await log_channel.send(embed=traceback_embed)
+                await log_channel.send(embed=trace_embed)
 
     async def developer_bypass(self, ctx):
         """
