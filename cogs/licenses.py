@@ -193,7 +193,7 @@ class LicenseHandler(commands.Cog):
         await self.activate_license(ctx, license, ctx.author)
 
     @commands.command(allieses=["add_license"])
-    @commands.has_permissions(administrator=True)
+    @commands.has_permissions(manage_roles=True)
     @commands.guild_only()
     async def add_license(self, ctx, member: discord.Member, license):
         """

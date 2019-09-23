@@ -17,18 +17,6 @@ class CmdErrors(commands.Cog):
 
     @commands.Cog.listener()
     async def on_command_error(self, ctx, error):
-        # In some cases I get "Forbidden" error in logs
-        # Meaning the member called non-existing command but the bot couldn't
-        # send error message because it doesn't have permission to send in that channel
-        # Now this is weird because I specifically every time get "Command not found."
-        # How come they always call non-existing command?
-        # This is for better logging and debugging to see what's going on
-        logger.warning(f"on_command_error ||| "
-                       f"Guild:{ctx.guild} ||| "
-                       f"Author:{ctx.author} ||| "
-                       f"Channel:{ctx.channel} ||| "
-                       f"Called (without prefix):{ctx.command}")
-
         # If command has local error handler, return
         if hasattr(ctx.command, "on_error"):
             return
@@ -63,18 +51,10 @@ class CmdErrors(commands.Cog):
 
         if isinstance(error, commands.CommandOnCooldown):
             # Cooldowns are ignored for developers
-            if ctx.message.author.id in self.bot.config.get_developers().values():
-                # reinvoke() bypasses error handlers so we surround it with try/catch and just
-                # send errors to ctx
-                try:
-                    await ctx.reinvoke()
-                except Exception as e:
-                    await ctx.send(embed=failure_embed(str(e)))
-                return
-            else:
+            if not await self.developer_bypass(ctx):
                 msg = f"This command is on cooldown, please retry in {math.ceil(error.retry_after)}s."
                 await ctx.send(embed=failure_embed(msg))
-                return
+            return
 
         if isinstance(error, commands.MissingPermissions):
             """
@@ -82,13 +62,15 @@ class CmdErrors(commands.Cog):
             MissingPermissions is raised if check for permissions of the member who invoked the command has failed.
             
             """
-            missing = [perm.replace("_", " ").replace("guild", "server").title() for perm in error.missing_perms]
-            if len(missing) > 2:
-                fmt = "{}, and {}".format("**, **".join(missing[:-1]), missing[-1])
-            else:
-                fmt = " and ".join(missing)
-            _message = f"You need the **{fmt}** permission(s) to use this command."
-            await ctx.send(embed=failure_embed(_message))
+            # Developers can bypass guild permissions
+            if not await self.developer_bypass(ctx):
+                missing = [perm.replace("_", " ").replace("guild", "server").title() for perm in error.missing_perms]
+                if len(missing) > 2:
+                    fmt = "{}, and {}".format("**, **".join(missing[:-1]), missing[-1])
+                else:
+                    fmt = " and ".join(missing)
+                _message = f"You need the **{fmt}** permission(s) to use this command."
+                await ctx.send(embed=failure_embed(_message))
             return
 
         if isinstance(error, commands.UserInputError):
@@ -155,6 +137,25 @@ class CmdErrors(commands.Cog):
             if log_channel is not None:
                 await log_channel.send(embed=embed)
                 await log_channel.send(embed=traceback_embed)
+
+    async def developer_bypass(self, ctx):
+        """
+        Developers can bypass guild permissions/ cooldowns etc.
+        Re-invokes the command.
+        :param ctx: ctx to re-invoke the command from (if the author is bot developer)
+        :return: Bool if developer or not.
+        """
+        # Developers can bypass guild permissions
+        if ctx.message.author.id in self.bot.config.get_developers().values():
+            # reinvoke() bypasses error handlers so we surround it with try/catch and just
+            # send errors to ctx
+            try:
+                await ctx.reinvoke()
+            except Exception as e:
+                await ctx.send(embed=failure_embed(str(e)))
+            return True
+        else:
+            return False
 
 
 def setup(bot):
