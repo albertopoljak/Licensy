@@ -67,6 +67,7 @@ if __name__ == "__main__":
             root_logger.warning(traceback_msg)
 
 
+@commands.is_owner()
 @bot.command(hidden=True)
 async def load(ctx, extension_path):
     """
@@ -78,6 +79,7 @@ async def load(ctx, extension_path):
     await ctx.send(embed=success_embed(f"{extension_path} loaded.", ctx.me))
 
 
+@commands.is_owner()
 @bot.command(hidden=True)
 async def unload(ctx, extension_path):
     """
@@ -89,6 +91,7 @@ async def unload(ctx, extension_path):
     await ctx.send(embed=success_embed(f"{extension_path} unloaded.", ctx.me))
 
 
+@commands.is_owner()
 @bot.command(hidden=True)
 async def disconnect(ctx):
     """
