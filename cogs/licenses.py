@@ -433,7 +433,7 @@ class LicenseHandler(commands.Cog):
     @commands.guild_only()
     async def licenses(self, ctx, license_role: discord.Role = None):
         """
-        Shows up to 15 licenses in DM.
+        Shows up to 10 licenses in DM.
 
         Shows licenses linked to license_role and your guild.
         If license_role is not passed then default guild role is used.
@@ -442,7 +442,7 @@ class LicenseHandler(commands.Cog):
 
         """
         # TODO: Perhaps add argument for it? Is it necessary?
-        num = 15
+        num = 10
 
         guild_id = ctx.guild.id
         if license_role is None:
@@ -558,7 +558,10 @@ class LicenseHandler(commands.Cog):
                 # Just in case if error in case role is None (deleted from guild) just show IDs from database
                 table.add_row(entry)
 
-        message = f"{member.name} active subscriptions in guild '{ctx.guild.name}':\n{table.draw()}"
+        local_time = datetime.now()
+        message = (f"Server local time: {local_time}\n\n"
+                   f"{member.name} active subscriptions in guild '{ctx.guild.name}':\n"
+                   f"{table.draw()}")
         await ctx.author.send(f"```{misc.maximize_size(message)}```")
         await ctx.send(embed=info_embed("Sent in Dms!", ctx.me), delete_after=5)
 
