@@ -11,6 +11,17 @@ logger = logging.getLogger(__name__)
 class Guild(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+        self.bot.loop.create_task(self.startup_guild_database_check())
+
+    async def startup_guild_database_check(self):
+        logger.info("Starting database guild checkup..")
+        await self.bot.wait_until_ready()
+        for guild in self.bot.guilds:
+            if not await self.bot.main_db.is_guild_registered(guild.id):
+                logger.info(f"Guild {guild.id} {guild} found but not registered. "
+                            f"Adding entry to database.")
+                await self.bot.main_db.setup_new_guild(guild.id, self.bot.config.get_default_prefix())
+        logger.info("Database guild checkup done!")
 
     @commands.command()
     @commands.cooldown(1, 30, commands.BucketType.guild)

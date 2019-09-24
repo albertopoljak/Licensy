@@ -103,6 +103,15 @@ class DatabaseHandler:
             row = await cursor.fetchone()
             return row[0]
 
+    async def is_guild_registered(self, guild_id: int) -> bool:
+        query = "SELECT GUILD_ID FROM GUILDS WHERE GUILD_ID=?"
+        async with self.connection.execute(query, (guild_id,)) as cursor:
+            row = await cursor.fetchone()
+            if row is None:
+                return False
+            else:
+                return True
+
     async def change_guild_prefix(self, guild_id: int, prefix: str):
         """
         :param guild_id: int id of guild to change the prefix to in the database

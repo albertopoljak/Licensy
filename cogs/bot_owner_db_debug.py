@@ -15,14 +15,21 @@ class BotOwnerDbDebug(commands.Cog):
 
     @commands.command(hidden=True)
     @commands.is_owner()
-    async def force_guild_join(self, ctx, guild_prefix):
+    async def force_guild_join(self, ctx, guild_prefix, guild_id: int = None):
         """
         Manually add guild to the database
         :param guild_prefix: Every guild will have it's own prefix
-
+        :param guild_id: To manually add a guild without being in it.
         """
-        await self.bot.main_db.setup_new_guild(ctx.guild.id, guild_prefix)
-        await ctx.send(embed=success_embed("Done", ctx.me))
+        if guild_id is None:
+            await self.bot.main_db.setup_new_guild(ctx.guild.id, guild_prefix)
+            await ctx.send(embed=success_embed("Done", ctx.me))
+        else:
+            if self.bot.get_guild(guild_id) is None:
+                await ctx.send(embed=failure_embed("Guild doesn't exist"))
+            else:
+                await self.bot.main_db.setup_new_guild(guild_id, guild_prefix)
+                await ctx.send(embed=success_embed("Done", ctx.me))
 
     @commands.command(hidden=True)
     @commands.is_owner()
@@ -58,8 +65,8 @@ class BotOwnerDbDebug(commands.Cog):
 
     @commands.command(hidden=True)
     @commands.is_owner()
-    async def force_remove_all_guild_data(self, ctx):
-        await self.bot.main_db.remove_all_guild_data(ctx.guild.id)
+    async def force_remove_all_guild_data(self, ctx, guild_too: int = 0):
+        await self.bot.main_db.remove_all_guild_data(ctx.guild.id, guild_too)
         await ctx.send(embed=success_embed("Done", ctx.me))
 
     @commands.command(hidden=True)
@@ -120,11 +127,6 @@ class BotOwnerDbDebug(commands.Cog):
 
         string_output = "".join(to_print)
         await ctx.send(embed=success_embed(misc.maximize_size(string_output), ctx.me))
-
-    @commands.command(hidden=True)
-    @commands.is_owner()
-    async def show_user_count(self, ctx):
-        await ctx.send(embed=success_embed(f"Serving {len(self.bot.users)} users!", ctx.me))
 
 
 def setup(bot):
