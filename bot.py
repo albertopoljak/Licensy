@@ -98,8 +98,8 @@ async def disconnect(ctx):
 
     """
     await ctx.send(embed=success_embed("Shutting down..", ctx.me))
-    await bot.main_db.commit()
-    await bot.main_db.close()
+    await bot.main_db.connection.commit()
+    await bot.main_db.connection.close()
     root_logger.info("Database closed.")
     await bot.logout()
     root_logger.info("Disconnected.")
