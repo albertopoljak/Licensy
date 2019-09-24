@@ -461,14 +461,14 @@ class LicenseHandler(commands.Cog):
             await ctx.send(embed=failure_embed("No available licenses for that role."))
             return
 
-        table = texttable.Texttable(max_width=45)
-        table.set_cols_dtype(["t"])
-        table.set_cols_align(["c"])
-        header = ("License",)
+        table = texttable.Texttable(max_width=60)
+        table.set_cols_dtype(["t", "t"])
+        table.set_cols_align(["c", "c"])
+        header = ("License", "Duration(h)")
         table.add_row(header)
 
-        for license in to_show:
-            table.add_row((license,))
+        for tple in to_show:
+            table.add_row((tple[0], tple[1]))
 
         dm_title = f"Showing {len(to_show)} licenses for role '{license_role.name}' in guild '{ctx.guild.name}':"
         message = (f"{dm_title}\n"

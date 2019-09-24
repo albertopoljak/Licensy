@@ -286,26 +286,19 @@ class DatabaseHandler:
 
     async def get_guild_licenses(self, number: int, guild_id: int, license_role_id: int) -> list:
         """
-        Returns list of licenses that are linked to license_role_id role.
+        Returns list of licenses that are linked to license_role_id role and their duration time.
         :param number: int larger than 0, max number of licenses to return
         :param guild_id: int guild id. Needed to differentiate guilds even though licenses are unique
                          for example to avoid members activating a valid license from one guild into
                          another guild (where linked roles don't exist).
         :param license_role_id: we get only those licenses that are linked to this role id
-        :return: list of licenses
+        :return: List of tuples in format [('license', license_duration_int_hours)]
 
         """
-        licenses = []
         query = """SELECT LICENSE, LICENSE_DURATION_HOURS FROM GUILD_LICENSES
                    WHERE GUILD_ID=? AND LICENSED_ROLE_ID=? LIMIT ?"""
         async with self.connection.execute(query, (guild_id, license_role_id, number)) as cursor:
-            rows = await cursor.fetchall()
-            # rows format:
-            # [('license1', license_duration_int_hours)]
-            for row in rows:
-                licenses.append(row[0])
-
-        return licenses
+            return await cursor.fetchall()
 
     async def get_guild_license_total_count(self, guild_id: int) -> int:
         query = "SELECT LICENSE FROM GUILD_LICENSES WHERE GUILD_ID=?"
