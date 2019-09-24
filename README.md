@@ -31,26 +31,44 @@ For full bot usage make sure you have the **administrator** guild permission (or
 Default prefix is `!`
 
 Default license expiration time is 720h aka 30 days.
-  
-Call `!help` to see available commands.
 
-Call `!help command_name` to see additional help for that specific command.
-
-After the bot joined the guild:
+After the bot joined the guild call:
 
 ```bash
 !default_role @role_here
 !generate 5
 ```
 
+First line will set **@role_here** as default guild role.
+
+Second will generate 5 licenses, and as you can see only 5 is a argument so the 
+command will use **default** guild role (previously set to **@role_here**) and **default** expiration 
+date (which is initially set to 720h aka 30days upon guild join).
+
+If you want to use `!generate` command in some other way (that doesn't rely on using
+default guild data but relies on passed arguments) call `!help generate` to see full explanation 
+on how to use it.
+
+In general these 2 are your friends:
+
+- Call `!help` to see available commands.
+Note that you will not see commands that you don't have the permission for.
+Example non-admin members will not see admin commands listed when calling help.
+
+- Call `!help command_name` to see additional help for that specific command.
+Every command is properly documented.
+
+
 Optional (so you have more information):
 
 ```bash
 !guild_info
-!help
-!help generate
 !faq
 ```
+
+For any other questions/help/suggestions/anything call `!support` and join the support server :)
+
+You can also join it from this github page, click on the icon at the top of this readme.
 
 ## Permissions needed
 
@@ -75,10 +93,9 @@ manage_roles=True
 ```bash
 manage_messages=True
 ```
-- In case there is error when redeeming the license your original message
-showing license gets deleted to minimize chances of stealing.
-This happens for example if you redeem license for a role you **already**
-have.
+- In case there is error while using command that exposes the license your original 
+message that is showing license will get deleted to minimize chances of stealing.
+This happens for example if you redeem license for a role you **already** have.
 
 ## Requirements for source
 

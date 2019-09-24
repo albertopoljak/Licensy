@@ -40,6 +40,8 @@ class Help(commands.Cog):
         self._original_help_command = bot.help_command
         bot.help_command = PrettyHelpCommand()
         bot.help_command.cog = self
+        self.github_permissions_link = "https://github.com/albertopoljak/Licensy#permissions-needed"
+        self.github_quick_start = "https://github.com/albertopoljak/Licensy#quickstart-bot-usage"
 
     def cog_unload(self):
         """
@@ -55,16 +57,15 @@ class Help(commands.Cog):
 
         """
         disclaimer = ("Disclaimer: Bot is currently in alpha phase.\n"
-                      "I am aware of certain security limitations (example points 1&2) "
-                      "and I'll be working on improving it. Please let me know which features"
-                      "/improvements you want so I can focus on those (use support command).")
+                      "Please let me know which features/improvements you want so I can focus on those.\n"
+                      f"Type `{ctx.prefix}support` for invite to support server.")
 
         bot_faq = ("**1. If bot gets kicked/banned do I lose all my data?**\n"
                    "All of the guild data is immediately deleted from the database.\n\n"
 
                    "**2. What happens if I delete a role or remove it manually from a member?**\n"
                    "If that role is tied to any licenses/active subscriptions "
-                   "they are immediately deleted from the database.\n\n"
+                   "they are immediately deleted/canceled from the database.\n\n"
 
                    "**3. What is the precision of role expiration?**\n"
                    "Bot checks for expired licenses on startup and each 60 seconds after startup.\n\n"
@@ -80,9 +81,29 @@ class Help(commands.Cog):
                    "but to keep things in sane borders the maximum time for expiry date is 12 months.\n\n"
 
                    "**7. How many licenses per guild?**\n"
-                   "You can have unlimited subscribed members with each having unlimited subscribed roles"
-                   " but there is a limit for unactivated licenses which is 100 per guild.")
+                   "You can have unlimited subscribed members with each having unlimited subscribed roles "
+                   "but there is a limit for unactivated licenses which is "
+                   f"{self.bot.config.get_maximum_unused_guild_licences()} per guild.\n\n"
+
+                   "**8. What are the permissions for?**\n"
+                   f"To avoid repeating this is a **[github link]({self.github_permissions_link})** where permissions "
+                   "are explained in detail.\n\n"
+
+                   "**9. What if I deny any of those permissions when inviting the bot?**\n"
+                   "Bot was over-engineered to deal with all sorts of exceptions but I don't guarantee the bot "
+                   "will function properly or at all in that case."
+                   )
         await ctx.send(embed=info_embed(f"{bot_faq}", ctx.me, title=disclaimer))
+
+    @commands.command()
+    async def quickstart(self, ctx):
+        """
+        Shortly explains first time bot usage.
+
+        """
+        description = (f"To avoid repeating this is a **[github link]({self.github_quick_start})** where quickstart "
+                       f"is explained in detail.")
+        await ctx.send(embed=info_embed(description, ctx.me, title="Quickstart :)"))
 
 
 def setup(bot):
