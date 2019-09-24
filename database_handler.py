@@ -210,6 +210,7 @@ class DatabaseHandler:
         """
         Return type:
         [(), ()...]
+        Note that returned LICENSED_ROLE_ID is string
         """
         query = "SELECT LICENSED_ROLE_ID, EXPIRATION_DATE FROM LICENSED_MEMBERS WHERE GUILD_ID=? AND MEMBER_ID=?"
         async with self.connection.execute(query, (guild_id, member_id)) as cursor:
@@ -217,7 +218,13 @@ class DatabaseHandler:
             if results is not None:
                 return results
             else:
-                raise DatabaseMissingData(f"No active licenses for guild {guild_id}.")
+                raise DatabaseMissingData(f"No active licenses for member {member_id} in guild {guild_id}.")
+
+    async def get_guild_licensed_roles_total_count(self, guild_id: int) -> int:
+        query = "SELECT LICENSED_ROLE_ID FROM LICENSED_MEMBERS WHERE GUILD_ID=?"
+        async with self.connection.execute(query, (guild_id,)) as cursor:
+            rows = await cursor.fetchall()
+            return len(rows)
 
     # TABLE GUILD_LICENSES ###############################################################
 
@@ -300,9 +307,9 @@ class DatabaseHandler:
 
         return licenses
 
-    async def get_guild_license_total_count(self, max_number: int, guild_id: int) -> int:
-        query = "SELECT LICENSE FROM GUILD_LICENSES WHERE GUILD_ID=? LIMIT ?"
-        async with self.connection.execute(query, (guild_id, max_number)) as cursor:
+    async def get_guild_license_total_count(self, guild_id: int) -> int:
+        query = "SELECT LICENSE FROM GUILD_LICENSES WHERE GUILD_ID=?"
+        async with self.connection.execute(query, (guild_id,)) as cursor:
             rows = await cursor.fetchall()
             return len(rows)
 

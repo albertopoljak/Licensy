@@ -113,7 +113,7 @@ class CmdErrors(commands.Cog):
             return
 
         if isinstance(error, DatabaseMissingData):
-            await ctx.send(embed=failure_embed(f"Critical database error: {error.message}"))
+            await ctx.send(embed=failure_embed(f"Database error: {error.message}"))
             await self.log_traceback(ctx, error)
             return
 

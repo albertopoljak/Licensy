@@ -41,7 +41,7 @@ class BotOwnerDbDebug(commands.Cog):
     @commands.command(hidden=True)
     @commands.is_owner()
     async def force_get_guild_license_total_count(self, ctx):
-        count = await self.bot.main_db.get_guild_license_total_count(10000, ctx.guild.id)
+        count = await self.bot.main_db.get_guild_license_total_count(ctx.guild.id)
         await ctx.send(embed=info_embed(count, ctx.me))
 
     @commands.command(hidden=True)

@@ -87,6 +87,9 @@ class Guild(commands.Cog):
 
         """
         prefix, role_id, expiration = await self.bot.main_db.get_guild_info(ctx.guild.id)
+        stored_license_count = await self.bot.main_db.get_guild_license_total_count(ctx.guild.id)
+        active_license_count = await self.bot.main_db.get_guild_licensed_roles_total_count(ctx.guild.id)
+
         # If the bot just joined the guild it can happen that the default license role is not set.
         if role_id is not None:
             default_license_role = discord.utils.get(ctx.guild.roles, id=int(role_id))
@@ -111,7 +114,10 @@ class Guild(commands.Cog):
         msg = (f"Database guild info:\n"
                f"Prefix: **{prefix}**\n"
                f"Default license role: {default_license_role}\n"
-               f"Default license expiration time: **{expiration}h**")
+               f"Default license expiration time: **{expiration}h**\n\n"
+               f"Stored licenses: **{stored_license_count}**\n"
+               f"Active role subscriptions: **{active_license_count}**")
+
         await ctx.send(embed=success_embed(msg, ctx.me))
 
 

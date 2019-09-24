@@ -159,7 +159,7 @@ class LicenseHandler(commands.Cog):
         """
         Revoke active subscription from member.
 
-        Removed both the database entry and the role from a member.
+        Removes both the database entry and the role from a member.
         """
         try:
             # DRY
@@ -175,6 +175,51 @@ class LicenseHandler(commands.Cog):
         msg = f"Successfully revoked subscription for {role.mention} from {member.mention}"
         await ctx.send(embed=success_embed(msg, ctx.me))
         logger.info(f"{ctx.author} is revoking subscription for role {role} from member {member} in guild {ctx.guild}")
+
+    @commands.command()
+    @commands.bot_has_permissions(manage_roles=True)
+    @commands.has_permissions(manage_roles=True)
+    @commands.guild_only()
+    async def revoke_all(self, ctx, member: discord.Member):
+        """
+        Revoke ALL active subscriptions from member.
+
+        Removes both the database entry and the role from a member.
+        """
+
+        member_data = await self.bot.main_db.get_member_data(ctx.guild.id, member.id)
+        count = 0
+
+        for tple in member_data:
+            role_id = int(tple[0])
+            role = ctx.guild.get_role(role_id)
+            if role is None:
+                logger.info(f"'revoke_all' called in guild {ctx.guild} and role that's loaded from database with "
+                            f"ID:{role_id} cannot be removed from {member} because it doesn't exist in guild anymore! "
+                            f"Continuing to removal from database.")
+                await self.bot.main_db.delete_licensed_member(member.id, role_id)
+                count += 1
+            else:
+                try:
+                    # First remove the role from member because this can fail in case of changed role hierarchy.
+                    await member.remove_roles(role)
+                    await self.bot.main_db.delete_licensed_member(member.id, role_id)
+                    count += 1
+                except Forbidden as e:
+                    msg = (f"Can't remove {role.mention} from {member.mention}, no permissions to manage that role as "
+                           f" I can only manage role below me in hierarchy. This probably means that {role.mention} "
+                           f"was moved up in the hierarchy **after** it was registered in my system "
+                           f"(or mine was moved down).\n"
+                           f"{e}")
+                    await ctx.send(embed=failure_embed(msg))
+
+        if count:
+            msg = f"Successfully revoked {count} subscriptions from {member.mention}!"
+            await ctx.send(embed=success_embed(msg, ctx.me))
+            logger.info(f"{ctx.author} has revoked all subscription for member {member} in guild {ctx.guild}")
+        else:
+            msg = f"Couldn't revoke even a single subscription from member {member.mention}!"
+            await ctx.send(embed=warning_embed(msg))
 
     @commands.command(aliases=["activate"])
     @commands.bot_has_permissions(manage_roles=True)
@@ -243,20 +288,14 @@ class LicenseHandler(commands.Cog):
                             "\nThis probably means that they were manually assigned this role without using the bot license system."
                             "\nHave someone remove the role from them and call this command again.")
                     await ctx.send(embed=failure_embed(msg))
+                    await ctx.message.delete()
                     return
 
                 remaining_time = get_remaining_time(expiration_date)
                 msg = (f"{member.mention} already has an active subscription for the {role.mention} role!"
                        f"\nIt's valid for another {remaining_time}")
-                # Remove the original message not to get license stolen.
-                # It won't guarantee it but at least it will not be in open sight.
-                # If missing delete permission just ignore
-                try:
-                    await ctx.message.delete()
-                except Forbidden:
-                    await ctx.send(embed=failure_embed("I would love to delete that message where you revealed the "
-                                                       "license but I don't have the permission for that :("))
                 await ctx.send(embed=warning_embed(msg))
+                await ctx.message.delete()
                 return
             # We add the role to the member, we do this before adding/removing stuff from db
             # just in case the bot doesn't have perms and throws exception (we already
@@ -314,7 +353,7 @@ class LicenseHandler(commands.Cog):
         generate 7 @role 1w
 
         License duration is either a number representing hours or a string consisting of words in format:
-        each word has to contain [integer][type format] format, entries are separated by space.
+        each word has to contain [integer][format] , entries are separated by space.
 
         Formats are:
         years y months m weeks w days d hours h
@@ -343,7 +382,7 @@ class LicenseHandler(commands.Cog):
 
         # Maximum number of unused licenses
         max_licenses_per_guild = self.bot.config.get_maximum_unused_guild_licences()
-        guild_licences_count = await self.bot.main_db.get_guild_license_total_count(max_licenses_per_guild+1, guild_id)
+        guild_licences_count = await self.bot.main_db.get_guild_license_total_count(guild_id)
         if guild_licences_count == max_licenses_per_guild:
             msg = f"You have reached maximum number of unused licenses per guild: {max_licenses_per_guild}!"
             await ctx.send(embed=warning_embed(msg))
@@ -521,6 +560,7 @@ class LicenseHandler(commands.Cog):
 
         message = f"{member.name} active subscriptions in guild '{ctx.guild.name}':\n{table.draw()}"
         await ctx.author.send(f"```{misc.maximize_size(message)}```")
+        await ctx.send(embed=info_embed("Sent in Dms!", ctx.me), delete_after=5)
 
     @commands.command()
     @commands.has_permissions(administrator=True)
