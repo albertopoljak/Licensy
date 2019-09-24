@@ -91,7 +91,13 @@ class Help(commands.Cog):
 
                    "**9. What if I deny any of those permissions when inviting the bot?**\n"
                    "Bot was over-engineered to deal with all sorts of exceptions but I don't guarantee the bot "
-                   "will function properly or at all in that case."
+                   "will function properly or at all in that case.\n\n"
+                   
+                   "**10. Does the bot get updated? Will it affect usage?**\n"
+                   "There will be no breaking changes in updates, only improvements. "
+                   "During the update you will see that bot has changed status to 'Update' or something similar. "
+                   "During that time the bot may stop responding to commands, but this is only for <5 minutes. "
+                   "After that everything is back to normal."
                    )
         await ctx.send(embed=info_embed(f"{bot_faq}", ctx.me, title=disclaimer))
 
