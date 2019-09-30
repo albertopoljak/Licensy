@@ -6,12 +6,12 @@ import logging
 from datetime import datetime
 from discord.ext import commands
 from helpers.misc import construct_load_bar_string, construct_embed, time_ago, embed_space
-from helpers.embed_handler import info_embed
+from helpers.embed_handler import info_embed, success_embed
 
 logger = logging.getLogger(__name__)
 
 
-class Information(commands.Cog):
+class BotInformation(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.developers = []
@@ -157,6 +157,14 @@ class Information(commands.Cog):
         """
         return time_ago(datetime.now() - self.bot.up_time_start_time)
 
+    @commands.command()
+    async def users(self, ctx):
+        """
+        Shows total count of users in all guilds.
+
+        """
+        await ctx.send(embed=success_embed(f"Serving {len(self.bot.users)} users!", ctx.me))
+
 
 def setup(bot):
-    bot.add_cog(Information(bot))
+    bot.add_cog(BotInformation(bot))

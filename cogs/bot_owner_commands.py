@@ -81,11 +81,6 @@ class BotOwnerCommands(commands.Cog):
             await ctx.send(embed=embed)
         await ctx.send(embed=success_embed("Done", ctx.me))
 
-    @commands.command(hidden=True)
-    @commands.is_owner()
-    async def show_user_count(self, ctx):
-        await ctx.send(embed=success_embed(f"Serving {len(self.bot.users)} users!", ctx.me))
-
 
 def setup(bot):
     bot.add_cog(BotOwnerCommands(bot))
