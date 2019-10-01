@@ -52,9 +52,6 @@ class Paginator:
         self.paginating = sum(map(len, self.chunks)) > self._max_msg_size
         self.message = None
 
-    def __del__(self):
-        print("Bye cruel world")
-
     @staticmethod
     def make_chunks(title, string, separator, max_msg_size):
         """
@@ -123,6 +120,7 @@ class Paginator:
         try:
             await self.message.clear_reactions()
         except Exception:
+            # Silently ignore if no permission to remove reaction.
             pass
 
     async def update_message(self):
