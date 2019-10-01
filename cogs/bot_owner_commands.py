@@ -1,7 +1,8 @@
 import discord
 from discord.ext import commands
-from helpers.embed_handler import success_embed, failure_embed, _simple_embed
+from helpers.embed_handler import success_embed, failure_embed
 from helpers.misc import tail
+from helpers.paginator import Paginator
 
 
 class BotOwnerCommands(commands.Cog):
@@ -64,22 +65,18 @@ class BotOwnerCommands(commands.Cog):
 
     @commands.command(hidden=True)
     @commands.is_owner()
-    async def show_log(self, ctx, lines=20):
+    async def show_log(self, ctx, lines=100):
         """
         Shows last n lines from log.txt
 
-        Max lines 200.
+        Max lines 10 000.
         Sends multiple messages at once if needed.
         """
-        if lines > 200:
-            lines = 200
+        if lines > 10_000:
+            lines = 10_000
 
         log = "".join(tail(lines))
-        logs = [log[i: i + 1980] for i in range(0, len(log), 1980)]
-        for index, entry in enumerate(logs):
-            embed = _simple_embed(entry, title=f"({index+1}) Last {lines} log lines", color=discord.Colour.red())
-            await ctx.send(embed=embed)
-        await ctx.send(embed=success_embed("Done", ctx.me))
+        await Paginator.paginate(self.bot, ctx.author, ctx.channel, log, title=f"Last {lines} log lines.\n\n")
 
 
 def setup(bot):
