@@ -17,7 +17,7 @@ def info_embed(message: str, member: Member, title: str = Embed.Empty) -> Embed:
     :return: Embed object
 
     """
-    embed = Embed(title=title, description=message, color=member.top_role.colour)
+    embed = Embed(title=title, description=message, color=misc.get_top_role_color(member))
     return embed
 
 
@@ -33,7 +33,7 @@ def success_embed(message: str, member: Member) -> Embed:
     :return: Embed object
 
     """
-    return _simple_embed(message, "Success", member.top_role.colour)
+    return _simple_embed(message, "Success", misc.get_top_role_color(member))
 
 
 def warning_embed(message: str) -> Embed:

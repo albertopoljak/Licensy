@@ -119,7 +119,7 @@ class BotInformation(commands.Cog):
                   "Server info": field_content,
                   }
 
-        embed = construct_embed(author=ctx.me, **fields)
+        embed = construct_embed(ctx.me, **fields)
         await ctx.send(embed=embed)
 
     @commands.command()

@@ -36,10 +36,22 @@ def construct_load_bar_string(percent, message=None, size=None):
     return constructed
 
 
-def construct_embed(description=None, author=None, **kwargs):
-    embed = Embed(description=description, color=author.top_role.color)
-    if author is not None:
-        embed.set_author(name=author.display_name, icon_url=author.avatar_url)
+def get_top_role_color(member):
+    """
+    Tries to get member top role color and if fails return Embed.Empty
+    This makes it work in DMs
+
+    """
+    try:
+        return member.top_role.color
+    except AttributeError:
+        # Fix for DMs
+        return Embed.Empty
+
+
+def construct_embed(author, description=None, **kwargs):
+    embed = Embed(description=description, color=get_top_role_color(author))
+    embed.set_author(name=author.display_name, icon_url=author.avatar_url)
 
     for field_name, field_content in kwargs.items():
         embed.add_field(name=field_name, value=field_content, inline=True)
