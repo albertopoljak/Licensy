@@ -28,9 +28,17 @@ class PrettyHelpCommand(commands.MinimalHelpCommand):
             self.paginator.add_line(joined)
 
     async def send_pages(self):
+        empty = discord.Embed.Empty
         destination = self.get_destination()
+
+        try:
+            color = self.context.me.top_role.color
+        except AttributeError:
+            # Fix for DMs
+            color = empty
+
         for page in self.paginator.pages:
-            embed = discord.Embed(title=discord.Embed.Empty, description=page, color=self.context.me.top_role.color)
+            embed = discord.Embed(title=empty, description=page, color=color)
             await destination.send(embed=embed)
 
 
