@@ -65,12 +65,13 @@ def maximize_size(message: str):
     return (message[:1980] + "...too long") if len(message) > 1980 else message
 
 
-def tail(n=1, _buffer=4098):
+def tail(n=1):
     """
     Tail a file and get X lines from the end
-    Source: https://stackoverflow.com/a/57277212/11311072
+    Source(modified to work): https://stackoverflow.com/a/57277212/11311072
 
     """
+
     with open("logs/log.txt", "r") as f:
         assert n >= 0
         pos, lines = n + 1, []
@@ -94,10 +95,10 @@ def tail(n=1, _buffer=4098):
                 if is_file_small:
                     break
 
-            pos *= 2
+            pos += 1
 
         lines.reverse()
-        return lines[-n:]
+        return lines
 
 
 # Embeds are not monospaced so we need to use spaces to make different lines "align"
