@@ -42,7 +42,7 @@ class Help(commands.Cog):
         bot.help_command = PrettyHelpCommand()
         bot.help_command.cog = self
         self.github_permissions_link = "https://github.com/albertopoljak/Licensy#permissions-needed"
-        self.github_quick_start = "https://github.com/albertopoljak/Licensy#quickstart-bot-usage"
+        self.github_bot_quick_start = "https://github.com/albertopoljak/Licensy#quickstart-bot-usage"
 
     def cog_unload(self):
         """
@@ -76,31 +76,38 @@ class Help(commands.Cog):
 
                    "**5. How are licenses generated, are they unique?**\n"
                    "They are completely unique, comprised of 30 randomly generated characters.\n\n"
+                   
+                   "**6. Can I generate licenses for roles other than default guild role?**\n"
+                   f"Use `{ctx.prefix}generate` command with custom arguments.\n"
+                   f"See **[github link]({self.github_bot_quick_start})** for example "
+                   f"or just call `{ctx.prefix}help generate` for more info.\n\n"
 
-                   "**6. What's the maximum for role expire time?**\n"
-                   "Bot is coded in a way that theoretically there is no limit, "
-                   "but to keep things in sane borders the maximum time for expiry date is 12 months.\n\n"
+                   "**7. What's the maximum for role expire time?**\n"
+                   "Maximum time for expiry date is 12 months.\n\n"
 
-                   "**7. How many licenses per guild?**\n"
-                   "You can have unlimited subscribed members with each having unlimited subscribed roles "
-                   "but there is a limit for unactivated licenses which is "
+                   "**8. How many stored licenses per guild?**\n"
+                   "Limit for stored (unactivated) licenses is "
                    f"{self.bot.config.get_maximum_unused_guild_licences()} per guild.\n\n"
+                   
+                   "**9. How many activated licenses per member?**\n"
+                   "Members can have unlimited subscriptions active at the same time! "
+                   "(only limited by the Discord role limit per member which is 250).\n\n"
 
-                   "**8. What are the permissions for?**\n"
-                   f"To avoid repeating this is a **[github link]({self.github_permissions_link})** where permissions "
+                   "**10. What are the bot permissions for?**\n"
+                   f"To avoid repeating see **[github link]({self.github_permissions_link})** where permissions "
                    "are explained in detail.\n\n"
 
-                   "**9. What if I deny any of those permissions when inviting the bot?**\n"
+                   "**11. What if I deny any of those permissions when inviting the bot?**\n"
                    "Bot was over-engineered to deal with all sorts of exceptions but I don't guarantee the bot "
                    "will function properly or at all in that case.\n\n"
                    
-                   "**10. Does the bot get updated? Will it affect usage?**\n"
+                   "**12. Does the bot get updated? Will it affect usage?**\n"
                    "There will be no breaking changes in updates, only improvements. "
-                   "During the update you will see that bot has changed status to 'Update' or something similar. "
+                   "During the update you will see that bot has changed status to 'Update' or is offline. "
                    "During that time the bot may stop responding to commands, but this is only for <5 minutes. "
                    "After that everything is back to normal."
                    )
-        await ctx.send(embed=info_embed(f"{bot_faq}", ctx.me, title=disclaimer))
+        await ctx.send(embed=info_embed(bot_faq, ctx.me, title=disclaimer))
 
     @commands.command()
     async def quickstart(self, ctx):
@@ -108,7 +115,7 @@ class Help(commands.Cog):
         Shortly explains first time bot usage.
 
         """
-        description = (f"To avoid repeating this is a **[github link]({self.github_quick_start})** where quickstart "
+        description = (f"To avoid repeating see **[github link]({self.github_bot_quick_start})** where quickstart "
                        f"is explained in detail.")
         await ctx.send(embed=info_embed(description, ctx.me, title="Quickstart :)"))
 
