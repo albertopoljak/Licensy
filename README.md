@@ -16,13 +16,15 @@
 Generate license keys that, when redeemed by a member, will add a certain role to member
 that will last for certain time.
 
-Both role and expiration time are tied to license.
+Each license is tied to a certain role and certain duration.
+
+When member redeems the license he will get that role for that certain duration.
 
 You can make all of your roles subscribable and each license can have different expiration date.
 
-Licenses are unique and random.
+Members can have unlimited subscriptions active at the same time! (only limited by the Discord role limit per member which is 250).
 
-Made with security in mind and to work independently with multiple guilds.
+Works independently with multiple guilds.
 
 ## Quickstart bot usage
 
@@ -49,6 +51,16 @@ If you want to use `!generate` command in some other way (that doesn't rely on u
 default guild data but relies on passed arguments) call `!help generate` to see full explanation 
 on how to use it.
 
+Quick example for custom `!generate` arguments:
+
+```
+!generate 10 @subscription 1m
+!generate 5 @supporter 1w
+```
+
+This will generate 10 licenses for role `@subscription` in duration of 1 month and 5 licenses for role `@supporter` in
+duration of 1 week.
+
 In general these 2 are your friends:
 
 - Call `!help` to see available commands.
@@ -72,7 +84,12 @@ You can also join it from this github page, click on the icon at the top of this
 
 ## Permissions needed
 
-Bot needs certain permissions to operate, here they are explained:
+Note that even if bot has all of these permission he might still not be able to manage some roles:
+
+- Remember that bots role has to be **higher** in role hierarchy than the managed members top role.
+Meaning it can only manage roles **below** it's own role in hierarchy.
+
+Bot needs these permissions to operate:
 
 ```bash
 read_messages=True
