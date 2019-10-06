@@ -33,6 +33,10 @@ class Guild(commands.Cog):
         Maximum prefix size is 5 characters.
 
         """
+        if ctx.prefix == prefix:
+            await ctx.send(embed=failure_embed(f"Already using prefix **{prefix}**"))
+            return
+
         try:
             await self.bot.main_db.change_guild_prefix(ctx.guild.id, prefix)
         except IntegrityError:

@@ -25,8 +25,8 @@ class BotInformation(commands.Cog):
         """
         Show bot ping.
 
-        First value is  time needed to send message & edit message.
-        Second value is the actual latency between bot and discord.
+        First value is REST API latency.
+        Second value is Discord Gateway latency.
 
         """
         before = time.monotonic()
@@ -43,7 +43,7 @@ class BotInformation(commands.Cog):
 
         """
         invite_link = self._get_bot_invite_link()
-        description = f"Use this **[invite]({invite_link})** to invite me."
+        description = f"Use this **[invite link]({invite_link})** to invite me."
         await ctx.send(embed=info_embed(description, ctx.me, title="Invite me :)"))
 
     def _get_bot_invite_link(self):
