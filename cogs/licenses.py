@@ -11,6 +11,7 @@ from helpers.converters import positive_integer, license_duration
 from helpers.errors import RoleNotFound, DatabaseMissingData, GuildNotFound
 from helpers.licence_helper import construct_expiration_date, get_remaining_time
 from helpers.embed_handler import success_embed, warning_embed, failure_embed, info_embed
+from helpers.paginator import Paginator
 
 logger = logging.getLogger(__name__)
 
@@ -433,7 +434,7 @@ class LicenseHandler(commands.Cog):
     @commands.guild_only()
     async def licenses(self, ctx, license_role: discord.Role = None):
         """
-        Shows up to 10 licenses in DM.
+        Shows all licenses for a role in DM.
 
         Shows licenses linked to license_role and your guild.
         If license_role is not passed then default guild role is used.
@@ -441,8 +442,7 @@ class LicenseHandler(commands.Cog):
         Sends results in DM to the user who invoked the command.
 
         """
-        # TODO: Perhaps add argument for it? Is it necessary?
-        num = 10
+        num = self.bot.config.get_maximum_unused_guild_licences()
 
         guild_id = ctx.guild.id
         if license_role is None:
@@ -470,31 +470,31 @@ class LicenseHandler(commands.Cog):
         for tple in to_show:
             table.add_row((tple[0], tple[1]))
 
-        dm_title = f"Showing {len(to_show)} licenses for role '{license_role.name}' in guild '{ctx.guild.name}':"
-        message = (f"{dm_title}\n"
-                   f"{table.draw()}")
+        dm_title = f"Showing {len(to_show)} licenses for role '{license_role.name}' in guild '{ctx.guild.name}':\n\n"
 
-        await ctx.author.send(f"```{misc.maximize_size(message)}```")
         await ctx.send(embed=success_embed("Sent to DM!", ctx.me), delete_after=5)
+        await Paginator.paginate(self.bot, ctx.author, ctx.author, table.draw(), title=dm_title)
 
     @commands.command(alliases=["random_licenses"])
     @commands.cooldown(1, 10, commands.BucketType.guild)
     @commands.has_permissions(administrator=True)
     @commands.guild_only()
-    async def random_license(self, ctx, x: int = 1):
+    async def random_license(self, ctx, number: int = 10):
         """
-        Shows random x guild licenses in DM.
+        Shows random guild licenses in DM.
 
-        If x is not passed default value is 1.
-        Maximum licenses to show is 10.
+        If number is not passed default value is 10.
+        Maximum licenses to show is 100.
 
         Sends results in DM to the user who invoked the command.
 
         """
-        if x > 10:
-            await ctx.send(embed=failure_embed("Number can't be larger than 10!"))
+        maximum_number = self.bot.config.get_maximum_unused_guild_licences()
+
+        if number > maximum_number:
+            await ctx.send(embed=failure_embed(f"Number can't be larger than {maximum_number}!"))
             return
-        to_show = await self.bot.main_db.get_random_licenses(ctx.guild.id, x)
+        to_show = await self.bot.main_db.get_random_licenses(ctx.guild.id, number)
         if not to_show:
             await ctx.send(embed=failure_embed("No licenses saved in db."))
             return
@@ -514,9 +514,9 @@ class LicenseHandler(commands.Cog):
                 # Just in case if error in case role is None (deleted from guild) just show IDs from database
                 table.add_row(entry)
 
-        message = f"Showing {x} random licenses from guild '{ctx.guild.name}':\n{table.draw()}"
-        await ctx.author.send(f"```{misc.maximize_size(message)}```")
+        title = f"Showing {number} random licenses from guild '{ctx.guild.name}':\n\n"
         await ctx.send(embed=success_embed("Sent to DM!", ctx.me), delete_after=5)
+        await Paginator.paginate(self.bot, ctx.author, ctx.author, table.draw(), title=title)
 
     @commands.command(aliases=["data"])
     @commands.guild_only()
@@ -559,11 +559,11 @@ class LicenseHandler(commands.Cog):
                 table.add_row(entry)
 
         local_time = datetime.now()
-        message = (f"Server local time: {local_time}\n\n"
-                   f"{member.name} active subscriptions in guild '{ctx.guild.name}':\n"
-                   f"{table.draw()}")
-        await ctx.author.send(f"```{misc.maximize_size(message)}```")
+        title = (f"Server local time: {local_time}\n\n"
+                 f"{member.name} active subscriptions in guild '{ctx.guild.name}':\n\n")
+
         await ctx.send(embed=info_embed("Sent in Dms!", ctx.me), delete_after=5)
+        await Paginator.paginate(self.bot, ctx.author, ctx.author, table.draw(), title=title, prefix="```DNS\n")
 
     @commands.command()
     @commands.has_permissions(administrator=True)

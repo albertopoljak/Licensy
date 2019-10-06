@@ -76,7 +76,7 @@ class BotOwnerCommands(commands.Cog):
             lines = 10_000
 
         log = "".join(tail(lines))
-        await Paginator.paginate(self.bot, ctx.author, ctx.channel, log,
+        await Paginator.paginate(self.bot, ctx.author, ctx.author, log,
                                  title=f"Last {lines} log lines.\n\n", prefix="```DNS\n")
 
 
