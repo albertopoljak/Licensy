@@ -46,7 +46,7 @@ class Paginator:
         self.output = output
         self.prefix = prefix
         self.suffix = suffix
-        self._max_msg_size = MAX_MSG_SIZE - len(prefix) - len(suffix) - len(title)
+        self._max_msg_size = MAX_MSG_SIZE - len(prefix) - len(suffix) - len(title) - Paginator.page_counter_suffix_string_length()
         self.chunk_index = 0
         self.chunks = Paginator.make_chunks(title, string, separator, self._max_msg_size)
         self.paginating = sum(map(len, self.chunks)) > self._max_msg_size
@@ -107,6 +107,11 @@ class Paginator:
         page_count = f"Page[{self.chunk_index + 1}/{len(self.chunks)}]"
         return f"\n\n{page_count}{self.suffix}"
 
+    @staticmethod
+    def page_counter_suffix_string_length():
+        """Format 'Page[000/999]"""
+        return 13
+
     async def make_message(self):
         self.message = await self.output.send(f"{self.prefix}{self.chunks[0]}{self.page_counter_suffix()}")
         if self.paginating:
@@ -127,7 +132,11 @@ class Paginator:
         await self.message.edit(content=f"{self.prefix}{self.chunks[self.chunk_index]}{self.page_counter_suffix()}")
 
     async def _remove_reaction(self, reaction):
-        await self.message.remove_reaction(reaction, self.user)
+        try:
+            await self.message.remove_reaction(reaction, self.user)
+        except Exception:
+            # Silently ignore if no permission to remove reaction. (example DM)
+            pass
 
     async def start_listener(self, bot, user, message):
         # Note to self: Do not use self in checks as references will not always be removed
