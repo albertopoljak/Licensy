@@ -100,7 +100,6 @@ async def disconnect(ctx):
     Used for gracefully shutting it down in need of update.
 
     """
-    await ctx.send(embed=success_embed("Shutting down..", ctx.me))
     await bot.main_db.connection.commit()
     await bot.main_db.connection.close()
     root_logger.info("Database closed.")

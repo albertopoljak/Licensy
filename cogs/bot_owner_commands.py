@@ -16,6 +16,7 @@ class BotOwnerCommands(commands.Cog):
             msg = """Update in progress.
                     Non breaking changes that will not affect bot usage/performance."""
         await self.bot.change_presence(activity=discord.Game(name=msg))
+        await ctx.send(success_embed("Successfully changed status.", ctx.me))
 
     @commands.command(hidden=True)
     @commands.is_owner()

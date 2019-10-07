@@ -114,8 +114,8 @@ class Paginator:
 
     async def make_message(self):
         if self.paginating:
-            await self._add_reactions()
             self.message = await self.output.send(f"{self.prefix}{self.chunks[0]}{self.page_counter_suffix()}")
+            await self._add_reactions()
         else:
             # Don't add counter if there is only 1 page
             self.message = await self.output.send(f"{self.prefix}{self.chunks[0]}{self.suffix}")
