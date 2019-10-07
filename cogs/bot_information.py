@@ -1,8 +1,8 @@
 import os
 import time
 import psutil
-import discord
 import logging
+import discord
 from datetime import datetime
 from discord.ext import commands
 from helpers.misc import construct_load_bar_string, construct_embed, time_ago, embed_space

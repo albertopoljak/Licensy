@@ -1,8 +1,11 @@
+import logging
 import discord
 from discord.ext import commands
 from helpers.embed_handler import success_embed, failure_embed
 from helpers.misc import tail
 from helpers.paginator import Paginator
+
+logger = logging.getLogger(__name__)
 
 
 class BotOwnerCommands(commands.Cog):
@@ -22,8 +25,7 @@ class BotOwnerCommands(commands.Cog):
     @commands.is_owner()
     async def playing(self, ctx, *, game):
         await self.bot.change_presence(activity=discord.Game(name=game))
-        msg = f"Successfully set presence to **Playing {game}**."
-        await ctx.send(embed=success_embed(msg, ctx.me))
+        logger.info(f"Successfully set presence to **Playing {game}**.")
 
     @commands.command(hidden=True)
     @commands.is_owner()
@@ -36,22 +38,19 @@ class BotOwnerCommands(commands.Cog):
             await ctx.send(embed=failure_embed("Only twitch urls supported!"))
             return
         await self.bot.change_presence(activity=discord.Streaming(name=name, url=url))
-        msg = f"Successfully set presence to **Streaming {name}**."
-        await ctx.send(embed=success_embed(msg, ctx.me))
+        logger.info(f"Successfully set presence to **Streaming {name}**.")
 
     @commands.command(hidden=True)
     @commands.is_owner()
     async def listening(self, ctx, *, song):
         await self.bot.change_presence(activity=discord.Activity(type=discord.ActivityType.listening, name=song))
-        msg = f"Successfully set presence to **Listening to {song}**."
-        await ctx.send(embed=success_embed(msg, ctx.me))
+        logger.info(f"Successfully set presence to **Listening to {song}**.")
 
     @commands.command(hidden=True)
     @commands.is_owner()
     async def watching(self, ctx, *, movie):
         await self.bot.change_presence(activity=discord.Activity(type=discord.ActivityType.watching, name=movie))
-        msg = f"Successfully set presence to **Watching {movie}**."
-        await ctx.send(embed=success_embed(msg, ctx.me))
+        logger.info(f"Successfully set presence to **Watching {movie}**.")
 
     @commands.command(hidden=True)
     @commands.is_owner()
@@ -62,6 +61,7 @@ class BotOwnerCommands(commands.Cog):
         """
         self.bot.config.reload_config()
         msg = "Successfully reloaded config."
+        logger.info(msg)
         await ctx.send(embed=success_embed(msg, ctx.me))
 
     @commands.command(hidden=True)
