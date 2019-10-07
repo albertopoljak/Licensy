@@ -113,9 +113,12 @@ class Paginator:
         return 13
 
     async def make_message(self):
-        self.message = await self.output.send(f"{self.prefix}{self.chunks[0]}{self.page_counter_suffix()}")
         if self.paginating:
             await self._add_reactions()
+            self.message = await self.output.send(f"{self.prefix}{self.chunks[0]}{self.page_counter_suffix()}")
+        else:
+            # Don't add counter if there is only 1 page
+            self.message = await self.output.send(f"{self.prefix}{self.chunks[0]}{self.suffix}")
 
     async def _add_reactions(self):
         for emoji in PAGINATION_EMOJIS:

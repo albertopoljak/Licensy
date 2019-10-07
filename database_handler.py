@@ -103,14 +103,15 @@ class DatabaseHandler:
             row = await cursor.fetchone()
             return row[0]
 
-    async def is_guild_registered(self, guild_id: int) -> bool:
-        query = "SELECT GUILD_ID FROM GUILDS WHERE GUILD_ID=?"
-        async with self.connection.execute(query, (guild_id,)) as cursor:
-            row = await cursor.fetchone()
-            if row is None:
-                return False
-            else:
-                return True
+    async def get_all_guild_ids(self):
+        """
+        :return: a tuple of all guild ids (ints)
+
+        """
+        query = "SELECT GUILD_ID FROM GUILDS"
+        async with self.connection.execute(query) as cursor:
+            results = await cursor.fetchall()
+            return tuple(int(guild_id[0]) for guild_id in results)
 
     async def change_guild_prefix(self, guild_id: int, prefix: str):
         """

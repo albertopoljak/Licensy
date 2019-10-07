@@ -66,6 +66,10 @@ class BotOwnerDbDebug(commands.Cog):
     @commands.command(hidden=True)
     @commands.is_owner()
     async def force_remove_all_guild_data(self, ctx, guild_too: int = 0):
+        """
+        :param guild_too: default 0. Pass 1 to delete guild table too.
+
+        """
         await self.bot.main_db.remove_all_guild_data(ctx.guild.id, guild_too)
         await ctx.send(embed=success_embed("Done", ctx.me))
 
@@ -96,6 +100,7 @@ class BotOwnerDbDebug(commands.Cog):
 
         async def print_cursor(cursor):
             results = await cursor.fetchall()
+            to_print.append(f"Count: {len(results)}\n")
             for row in results:
                 for record in range(len(row)):
                     to_print.append(f"{row[record]} ")

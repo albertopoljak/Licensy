@@ -14,13 +14,19 @@ class Guild(commands.Cog):
         self.bot.loop.create_task(self.startup_guild_database_check())
 
     async def startup_guild_database_check(self):
+        db_guilds_ids = await self.bot.main_db.get_all_guild_ids()
         logger.info("Starting database guild checkup..")
         await self.bot.wait_until_ready()
+        # Checks for new guilds
         for guild in self.bot.guilds:
-            if not await self.bot.main_db.is_guild_registered(guild.id):
+            if guild.id not in db_guilds_ids:
                 logger.info(f"Guild {guild.id} {guild} found but not registered. "
                             f"Adding entry to database.")
                 await self.bot.main_db.setup_new_guild(guild.id, self.bot.config.get_default_prefix())
+
+        # Do not code the other way around
+        # aka deleting database data if the guild in database doesn't exist in bot guilds
+        # Discord downtimes can cause bot to not see the guilds and they will reappear after downtime
         logger.info("Database guild checkup done!")
 
     @commands.command()
