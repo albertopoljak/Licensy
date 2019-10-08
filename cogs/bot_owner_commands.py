@@ -108,6 +108,53 @@ class BotOwnerCommands(commands.Cog):
 
     @commands.command(hidden=True)
     @commands.is_owner()
+    async def guild_diagnostic(self, ctx, guild_id: int):
+        """
+        A shortened version of guild_info command without any checks and
+        including additional data from the guild object.
+
+        minus DRY :(
+        """
+        guild = self.bot.get_guild(guild_id)
+        if guild is None:
+            await ctx.send(embed=failure_embed("Guild ID not found in loaded guilds."))
+            return
+
+        prefix, role_id, expiration = await self.bot.main_db.get_guild_info(guild_id)
+        stored_license_count = await self.bot.main_db.get_guild_license_total_count(guild_id)
+        active_license_count = await self.bot.main_db.get_guild_licensed_roles_total_count(guild_id)
+
+        if role_id is None:
+            default_license_role = "**Not set!**"
+        else:
+            default_license_role = guild.get_role(int(role_id))
+
+        msg = (f"Database guild info:\n"
+               f"Prefix: **{prefix}**\n"
+               f"Default license role: {default_license_role}\n"
+               f"Default license expiration time: **{expiration}h**\n"
+               f"Stored licenses: **{stored_license_count}**\n"
+               f"Active role subscriptions: **{active_license_count}**\n\n"
+        
+               f"Guild info:\n"
+               f"Name: **{guild.name}**\n"
+               f"Description: **{guild.description}**\n"
+               f"Owner ID: **{guild.owner_id}**\n"
+               f"Member count: **{guild.member_count}**\n"
+               f"Role count: **{len(guild.roles)}**\n"
+               f"Verification level: **{guild.verification_level}**\n"
+               f"Premium tier: **{guild.premium_tier}**\n"
+               f"System channel: **{guild.system_channel.id}**\n"
+               f"Region: **{guild.region}**\n"
+               f"Unavailable: **{guild.unavailable}**\n"
+               f"Created date: **{guild.created_at}**\n"
+               f"Features: **{guild.features}**"
+               )
+
+        await ctx.send(embed=success_embed(msg, ctx.me))
+
+    @commands.command(hidden=True)
+    @commands.is_owner()
     async def force_remove_all_guild_data(self, ctx, guild_too: int = 0):
         """
         :param guild_too: default 0. Pass 1 to delete guild table too.

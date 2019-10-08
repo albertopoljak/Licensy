@@ -104,8 +104,6 @@ class Guild(commands.Cog):
         """
         Shows database data for the guild.
 
-        Message contains guild prefix, default license role and default license expiration time.
-
         """
         prefix, role_id, expiration = await self.bot.main_db.get_guild_info(ctx.guild.id)
         stored_license_count = await self.bot.main_db.get_guild_license_total_count(ctx.guild.id)
