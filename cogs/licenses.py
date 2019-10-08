@@ -570,8 +570,7 @@ class LicenseHandler(commands.Cog):
     @commands.guild_only()
     async def delete_license(self, ctx, license):
         """
-        Deletes specified license.
-        Can delete only 1 at the time.
+        Deletes specified stored license.
 
         """
         if await self.bot.main_db.is_valid_license(license, ctx.guild.id):
@@ -580,6 +579,24 @@ class LicenseHandler(commands.Cog):
             logger.info(f"{ctx.author} is deleting license {license} from guild {ctx.guild}")
         else:
             await ctx.send(embed=failure_embed("License not valid."))
+
+    @commands.command()
+    @commands.has_permissions(administrator=True)
+    @commands.guild_only()
+    async def delete_all(self, ctx):
+        """
+        Deletes all stored guild licenses.
+
+        You will have to reply with "yes" for confirmation.
+        """
+
+        def check(msg):
+            return msg.author == ctx.author and msg.channel == ctx.channel and msg.content == "yes"
+
+        await ctx.send(embed=warning_embed("Are you sure? Reply with case sensitive `yes` in the next 15s to proceed."))
+        await self.bot.wait_for("message", check=check, timeout=15)
+        await self.bot.main_db.remove_all_stored_guild_licenses(ctx.guild.id)
+        await ctx.send(embed=success_embed("Done!", ctx.me))
 
     async def handle_missing_default_role(self, ctx, missing_role_id: int):
         """

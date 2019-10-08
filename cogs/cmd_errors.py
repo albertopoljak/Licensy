@@ -1,6 +1,7 @@
 import math
 import logging
 import traceback
+from asyncio import TimeoutError
 from discord.ext import commands
 from discord.errors import Forbidden
 from helpers.errors import RoleNotFound, DefaultGuildRoleNotSet, DatabaseMissingData
@@ -120,6 +121,10 @@ class CmdErrors(commands.Cog):
         if isinstance(error, DatabaseMissingData):
             await ctx.send(embed=failure_embed(f"Database error: {error.message}"))
             await self.log_traceback(ctx, error)
+            return
+
+        if isinstance(error, TimeoutError):
+            await ctx.send(embed=failure_embed("You took too long to reply."), delete_after=5)
             return
 
         await self.log_traceback(ctx, error)

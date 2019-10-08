@@ -231,10 +231,10 @@ class DatabaseHandler:
                 raise DatabaseMissingData(f"No active licenses for member {member_id} in guild {guild_id}.")
 
     async def get_guild_licensed_roles_total_count(self, guild_id: int) -> int:
-        query = "SELECT LICENSED_ROLE_ID FROM LICENSED_MEMBERS WHERE GUILD_ID=?"
+        query = "SELECT COUNT(*) FROM LICENSED_MEMBERS WHERE GUILD_ID=?"
         async with self.connection.execute(query, (guild_id,)) as cursor:
-            rows = await cursor.fetchall()
-            return len(rows)
+            result = await cursor.fetchone()
+            return result[0]
 
     # TABLE GUILD_LICENSES ###############################################################
 
@@ -311,10 +311,10 @@ class DatabaseHandler:
             return await cursor.fetchall()
 
     async def get_guild_license_total_count(self, guild_id: int) -> int:
-        query = "SELECT LICENSE FROM GUILD_LICENSES WHERE GUILD_ID=?"
+        query = "SELECT COUNT(*) FROM GUILD_LICENSES WHERE GUILD_ID=?"
         async with self.connection.execute(query, (guild_id,)) as cursor:
-            rows = await cursor.fetchall()
-            return len(rows)
+            result = await cursor.fetchone()
+            return result[0]
 
     async def is_valid_license(self, license: str, guild_id: int) -> bool:
         """
@@ -338,7 +338,7 @@ class DatabaseHandler:
         async with self.connection.execute(query, (guild_id, amount)) as cursor:
             return await cursor.fetchall()
 
-    async def remove_all_guild_licenses(self, guild_id: int):
+    async def remove_all_stored_guild_licenses(self, guild_id: int):
         query = "DELETE FROM GUILD_LICENSES WHERE GUILD_ID=?"
         await self.connection.execute(query, (guild_id,))
         await self.connection.commit()
