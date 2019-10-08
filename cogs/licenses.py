@@ -240,7 +240,7 @@ class LicenseHandler(commands.Cog):
     @commands.command(allieses=["add_license"])
     @commands.has_permissions(manage_roles=True)
     @commands.guild_only()
-    async def add_license(self, ctx, member: discord.Member, license):
+    async def add_license(self, ctx, license, member: discord.Member):
         """
         Manually add license to member.
 
