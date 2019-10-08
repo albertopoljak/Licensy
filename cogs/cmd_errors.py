@@ -91,7 +91,12 @@ class CmdErrors(commands.Cog):
             if error.code == 50013:
                 msg = (f"{error}.\n"
                        f"Check role hierarchy - I can only manage roles below me.")
-                await ctx.send(embed=failure_embed(msg))
+                try:
+                    await ctx.send(embed=failure_embed(msg))
+                except Forbidden:
+                    # Forbidden can also mean no permissions to send to that channel
+                    # Ignore so we don't get useless errors
+                    return
 
             # 403 FORBIDDEN (error code: 50007): Cannot send messages to this user.
             elif error.code == 50007:
