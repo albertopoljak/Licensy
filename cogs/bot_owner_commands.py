@@ -1,4 +1,5 @@
 import logging
+import asyncio
 import discord
 from discord.ext import commands
 from helpers.embed_handler import success_embed, failure_embed
@@ -8,6 +9,7 @@ from helpers.converters import license_duration
 from helpers.licence_helper import construct_expiration_date
 
 logger = logging.getLogger(__name__)
+update_channel_id = 625404542535598090
 
 
 class BotOwnerCommands(commands.Cog):
@@ -16,12 +18,32 @@ class BotOwnerCommands(commands.Cog):
 
     @commands.command(hidden=True)
     @commands.is_owner()
-    async def update(self, ctx, *, msg=None):
-        if msg is None:
-            msg = """Update in progress.
-                    Non breaking changes that will not affect bot usage/performance."""
-        await self.bot.change_presence(activity=discord.Game(name=msg))
-        await ctx.send(success_embed("Successfully changed status.", ctx.me))
+    async def update(self, ctx):
+        count_minutes = 15
+        for i in range(count_minutes, 0, -1):
+            await self.bot.change_presence(activity=discord.Game(name=f"Update in {i}"))
+            await asyncio.sleep(60)
+
+        progress_msg = ("```diff\n"
+                        "- ----------------------\n"
+                        "+   Update in progress\n"
+                        "- ----------------------\n"
+                        "```")
+        update_channel = self.bot.get_channel(update_channel_id)
+        await update_channel.send(progress_msg)
+        await self.bot.change_presence(activity=discord.Game(name="Update in progress!"))
+
+    @commands.command(hidden=True)
+    @commands.is_owner()
+    async def update_done(self, ctx):
+        msg = ("```diff\n"
+               "- -------------------------------------------------------------\n"
+               "+   Update done. All changes above this message are now live!\n"
+               "- -------------------------------------------------------------\n"
+               "```")
+        update_channel = self.bot.get_channel(update_channel_id)
+        await update_channel.send(msg)
+        await self.bot.change_presence(activity=discord.Game(name="Roles!"))
 
     @commands.command(hidden=True)
     @commands.is_owner()
@@ -108,59 +130,60 @@ class BotOwnerCommands(commands.Cog):
 
     @commands.command(hidden=True)
     @commands.is_owner()
-    async def guild_diagnostic(self, ctx, guild_id: int):
+    async def guild_diagnostic(self, ctx, guild_id: int = None):
         """
         A shortened version of guild_info command without any checks and
         including additional data from the guild object.
 
         minus DRY :(
         """
+        if guild_id is None:
+            guild_id = ctx.guild.id
+
         guild = self.bot.get_guild(guild_id)
         if guild is None:
-            await ctx.send(embed=failure_embed("Guild ID not found in loaded guilds."))
-            return
+            loaded_msg = "Guild ID not found in loaded guilds."
+        else:
+            loaded_msg = (f"Guild info:\n"
+                          f"Name: **{guild.name}**\n"
+                          f"Description: **{guild.description}**\n"
+                          f"Owner ID: **{guild.owner_id}**\n"
+                          f"Member count: **{guild.member_count}**\n"
+                          f"Role count: **{len(guild.roles)}**\n"
+                          f"Verification level: **{guild.verification_level}**\n"
+                          f"Premium tier: **{guild.premium_tier}**\n"
+                          f"System channel: **{guild.system_channel.id}**\n"
+                          f"Region: **{guild.region}**\n"
+                          f"Unavailable: **{guild.unavailable}**\n"
+                          f"Created date: **{guild.created_at}**\n"
+                          f"Features: **{guild.features}**"
+                          )
 
         prefix, role_id, expiration = await self.bot.main_db.get_guild_info(guild_id)
         stored_license_count = await self.bot.main_db.get_guild_license_total_count(guild_id)
         active_license_count = await self.bot.main_db.get_guild_licensed_roles_total_count(guild_id)
 
         if role_id is None:
-            default_license_role = "**Not set!**"
-        else:
-            default_license_role = guild.get_role(int(role_id))
+            role_id = "**Not set!**"
 
-        msg = (f"Database guild info:\n"
-               f"Prefix: **{prefix}**\n"
-               f"Default license role: {default_license_role}\n"
-               f"Default license expiration time: **{expiration}h**\n"
-               f"Stored licenses: **{stored_license_count}**\n"
-               f"Active role subscriptions: **{active_license_count}**\n\n"
-        
-               f"Guild info:\n"
-               f"Name: **{guild.name}**\n"
-               f"Description: **{guild.description}**\n"
-               f"Owner ID: **{guild.owner_id}**\n"
-               f"Member count: **{guild.member_count}**\n"
-               f"Role count: **{len(guild.roles)}**\n"
-               f"Verification level: **{guild.verification_level}**\n"
-               f"Premium tier: **{guild.premium_tier}**\n"
-               f"System channel: **{guild.system_channel.id}**\n"
-               f"Region: **{guild.region}**\n"
-               f"Unavailable: **{guild.unavailable}**\n"
-               f"Created date: **{guild.created_at}**\n"
-               f"Features: **{guild.features}**"
-               )
+        db_msg = (f"Database guild info:\n"
+                  f"Prefix: **{prefix}**\n"
+                  f"Default license role: {role_id}\n"
+                  f"Default license expiration time: **{expiration}h**\n"
+                  f"Stored licenses: **{stored_license_count}**\n"
+                  f"Active role subscriptions: **{active_license_count}**")
 
-        await ctx.send(embed=success_embed(msg, ctx.me))
+        await ctx.send(embed=success_embed(f"{db_msg}\n\n{loaded_msg}", ctx.me))
 
     @commands.command(hidden=True)
     @commands.is_owner()
-    async def force_remove_all_guild_data(self, ctx, guild_too: int = 0):
+    async def force_remove_all_guild_data(self, ctx, guild_id: int, guild_too: int = 0):
         """
+        :param guild_id: guild in question
         :param guild_too: default 0. Pass 1 to delete guild table too.
 
         """
-        await self.bot.main_db.remove_all_guild_data(ctx.guild.id, guild_too)
+        await self.bot.main_db.remove_all_guild_data(guild_id, guild_too)
         await ctx.send(embed=success_embed("Done", ctx.me))
 
     @commands.command(hidden=True)
