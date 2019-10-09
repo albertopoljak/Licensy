@@ -10,7 +10,7 @@ from helpers import misc
 from helpers.converters import positive_integer, license_duration
 from helpers.errors import RoleNotFound, DatabaseMissingData, GuildNotFound
 from helpers.licence_helper import construct_expiration_date, get_remaining_time
-from helpers.embed_handler import success_embed, warning_embed, failure_embed, info_embed
+from helpers.embed_handler import success_embed, warning_embed, failure_embed, info_embed, simple_embed
 from helpers.paginator import Paginator
 
 logger = logging.getLogger(__name__)
@@ -117,8 +117,8 @@ class LicenseHandler(commands.Cog):
         else:
             await member.remove_roles(member_role)
             try:
-                await member.send(f"Your license in guild **{guild}** has expired "
-                                  f"for the following role: **{member_role}** ")
+                expired = f"Your license in guild **{guild}** has expired for the following role: **{member_role}** "
+                await member.send(embed=simple_embed(expired, "Notification", discord.Colour.blue()))
             except Forbidden:
                 # Ignore if user has blocked DM
                 pass
