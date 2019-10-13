@@ -106,7 +106,11 @@ class CmdErrors(commands.Cog):
                 await ctx.send(embed=failure_embed(msg))
 
             else:
-                await ctx.send(embed=failure_embed(f"{error}."))
+                try:
+                    # In case we got Forbidden because we can't send to the destination
+                    await ctx.send(embed=failure_embed(f"{error}."))
+                except Forbidden:
+                    return
             return
 
         if isinstance(error, RoleNotFound):
