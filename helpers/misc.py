@@ -88,7 +88,7 @@ def tail(n=1):
 
     """
 
-    with open("logs/log.txt", "r") as f:
+    with open("logs/log.txt", "r", errors="backslashreplace") as f:
         assert n >= 0
         pos, lines = n + 1, []
 
