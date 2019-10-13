@@ -1,7 +1,7 @@
 import os
 import logging
 from pathlib import Path
-from discord import Embed
+from discord import Embed, Colour
 import timeago as timesince
 
 logger = logging.getLogger(__name__)
@@ -38,12 +38,16 @@ def construct_load_bar_string(percent, message=None, size=None):
 
 def get_top_role_color(member):
     """
-    Tries to get member top role color and if fails return Embed.Empty
-    This makes it work in DMs
+    Tries to get member top role color and if fails return Embed.Empty - This makes it work in DMs.
+    If the top role has default role color then returns green color (marking success)
 
     """
     try:
-        return member.top_role.color
+        color = member.top_role.color
+        if color == Colour.default():
+            return Colour.green()
+        else:
+            return member.top_role.color
     except AttributeError:
         # Fix for DMs
         return Embed.Empty
