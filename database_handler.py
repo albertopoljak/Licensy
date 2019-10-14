@@ -91,7 +91,7 @@ class DatabaseHandler:
         logger.info("Database successfully created!")
         return conn
 
-    async def _update_database(self, query, *args):
+    async def update_database(self, query: str, *args):
         await self.connection.execute(query, args)
         await self.connection.commit()
 
