@@ -98,7 +98,7 @@ class DatabaseHandler:
     # TABLE GUILDS #######################################################################
     async def setup_new_guild(self, guild_id: int, default_prefix: str):
         insert_guild_query = "INSERT INTO GUILDS(GUILD_ID, PREFIX) VALUES(?,?)"
-        await self.update_database(insert_guild_query, (guild_id, default_prefix))
+        await self.update_database(insert_guild_query, guild_id, default_prefix)
 
     async def get_guild_prefix(self, guild_id: int) -> str:
         query = "SELECT PREFIX FROM GUILDS WHERE GUILD_ID=?"
@@ -123,15 +123,15 @@ class DatabaseHandler:
         :raise: IntegrityError if the prefix has too many chars (max 5)
         """
         query = "UPDATE GUILDS SET PREFIX=? WHERE GUILD_ID=?"
-        await self.update_database(query, (prefix, guild_id))
+        await self.update_database(query, prefix, guild_id)
 
     async def change_default_guild_role(self, guild_id: int, role_id: int):
         query = "UPDATE GUILDS SET DEFAULT_LICENSE_ROLE_ID=? WHERE GUILD_ID=?"
-        await self.update_database(query, (role_id, guild_id))
+        await self.update_database(query, role_id, guild_id)
 
     async def change_default_license_expiration(self, guild_id: int, expiration_hours: int):
         query = "UPDATE GUILDS SET DEFAULT_LICENSE_DURATION_HOURS=? WHERE GUILD_ID=?"
-        await self.update_database(query, (expiration_hours, guild_id))
+        await self.update_database(query, expiration_hours, guild_id)
 
     async def get_default_guild_license_role_id(self, guild_id: int) -> int:
         """
@@ -184,16 +184,8 @@ class DatabaseHandler:
 
     async def add_new_licensed_member(self, member_id: int, guild_id: int,
                                       expiration_date: datetime, licensed_role_id: int):
-        """
-        :param member_id:
-        :param guild_id:
-        :param expiration_date:
-        :param licensed_role_id:
-        :return:
-
-        """
         query = "INSERT INTO LICENSED_MEMBERS(MEMBER_ID, GUILD_ID, EXPIRATION_DATE, LICENSED_ROLE_ID) VALUES(?,?,?,?)"
-        await self.update_database(query, (member_id, guild_id, expiration_date, licensed_role_id))
+        await self.update_database(query, member_id, guild_id, expiration_date, licensed_role_id)
 
     async def delete_licensed_member(self, member_id: int, licensed_role_id: int):
         """
@@ -203,7 +195,7 @@ class DatabaseHandler:
 
         """
         delete_query = "DELETE FROM LICENSED_MEMBERS WHERE MEMBER_ID=? AND LICENSED_ROLE_ID=?"
-        await self.update_database(delete_query, (member_id, licensed_role_id))
+        await self.update_database(delete_query, member_id, licensed_role_id)
 
     async def get_member_license_expiration_date(self, member_id: int, licensed_role_id: int) -> str:
         query = "SELECT EXPIRATION_DATE FROM LICENSED_MEMBERS WHERE MEMBER_ID=? AND LICENSED_ROLE_ID=?"
@@ -289,7 +281,7 @@ class DatabaseHandler:
 
         """
         delete_query = "DELETE FROM GUILD_LICENSES WHERE LICENSE=?"
-        await self.update_database(delete_query, (license,))
+        await self.update_database(delete_query, license)
 
     async def get_guild_licenses(self, number: int, guild_id: int, license_role_id: int) -> list:
         """
@@ -337,7 +329,7 @@ class DatabaseHandler:
 
     async def remove_all_stored_guild_licenses(self, guild_id: int):
         query = "DELETE FROM GUILD_LICENSES WHERE GUILD_ID=?"
-        await self.update_database(query, (guild_id,))
+        await self.update_database(query, guild_id)
 
     # ALL TABLES #########################################################################
 
