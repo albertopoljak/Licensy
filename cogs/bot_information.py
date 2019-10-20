@@ -4,7 +4,7 @@ import psutil
 import logging
 import discord
 from datetime import datetime
-from discord.ext import commands
+from discord.ext import commands, tasks
 from helpers.misc import construct_load_bar_string, construct_embed, time_ago, embed_space
 from helpers.embed_handler import info_embed
 
@@ -20,6 +20,24 @@ class BotInformation(commands.Cog):
         self.process = psutil.Process(os.getpid())
         self.support_server_invite = self.bot.config.get_support_channel_invite()
         self.patreon_link = "https://www.patreon.com/Licensy"
+        self.activity = 0
+        self.activity_loop.start()
+
+    @tasks.loop(seconds=300.0)
+    async def activity_loop(self):
+        if self.activity == 0:
+            await self.bot.change_presence(activity=discord.Game(name="Roles!"))
+            self.activity = 1
+        elif self.activity == 1:
+            msg = f"{len(self.bot.guilds)} guilds!"
+            await self.bot.change_presence(activity=discord.Activity(type=discord.ActivityType.watching, name=msg))
+            self.activity = 0
+
+    @activity_loop.before_loop
+    async def before_activity_loop(self):
+        logger.info("Starting activity loop..")
+        await self.bot.wait_until_ready()
+        logger.info("Activity loop started!")
 
     @commands.command()
     async def ping(self, ctx):
