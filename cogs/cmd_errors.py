@@ -24,7 +24,10 @@ class CmdErrors(commands.Cog):
         error = getattr(error, "original", error)
 
         if isinstance(error, commands.CommandNotFound):
-            await ctx.send(embed=failure_embed("Command not found."))
+            try:
+                await ctx.send(embed=failure_embed("Command not found."))
+            except Forbidden:
+                return
             return
 
         if isinstance(error, commands.BotMissingPermissions):
