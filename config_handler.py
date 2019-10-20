@@ -54,6 +54,9 @@ class ConfigHandler:
     def get_maximum_unused_guild_licences(self) -> int:
         return self.get_key("maximum_unused_guild_licences")
 
+    def get_top_gg_api_key(self) -> str:
+        return self.get_key("top_gg_api_key")
+
     def get_token(self) -> str:
         return self.get_key("token")
 

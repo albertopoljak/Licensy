@@ -25,6 +25,7 @@ startup_extensions = ["licenses",
                       "guild",
                       "bot_information",
                       "help",
+                      "top_gg_api",
                       "cmd_errors"]
 
 

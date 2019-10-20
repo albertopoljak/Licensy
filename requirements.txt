@@ -4,3 +4,4 @@ aiosqlite
 texttable
 timeago
 psutil
+dblpy
