@@ -6,7 +6,7 @@ import discord
 from datetime import datetime
 from discord.ext import commands
 from helpers.misc import construct_load_bar_string, construct_embed, time_ago, embed_space
-from helpers.embed_handler import info_embed, success_embed
+from helpers.embed_handler import info_embed
 
 logger = logging.getLogger(__name__)
 
@@ -19,6 +19,7 @@ class BotInformation(commands.Cog):
         self.bot.loop.create_task(self.set_developers())
         self.process = psutil.Process(os.getpid())
         self.support_server_invite = self.bot.config.get_support_channel_invite()
+        self.patreon_link = "https://www.patreon.com/Licensy"
 
     @commands.command()
     async def ping(self, ctx):
@@ -64,11 +65,14 @@ class BotInformation(commands.Cog):
     @commands.cooldown(1, 10, commands.BucketType.user)
     async def about(self, ctx):
         """
-        Show bot/server information.
+        Show bot information (stats/links/etc).
 
         """
         avg_members = round(len(self.bot.users) / len(self.bot.guilds))
         avg_members_string = f"{avg_members} users/server"
+
+        active_licenses = await self.bot.main_db.get_licensed_roles_total_count()
+        stored_licenses = await self.bot.main_db.get_stored_license_total_count()
 
         bot_ram_usage = self.process.memory_full_info().rss / 1024 ** 2
         bot_ram_usage = f"{bot_ram_usage:.2f} MB"
@@ -95,6 +99,7 @@ class BotInformation(commands.Cog):
         io_write_bytes = f"{io_counters.write_bytes/1024/1024:.3f}MB"
 
         footer = (f"[Invite]({self._get_bot_invite_link()})"
+                  f" | [Donate]({self.patreon_link})"
                   f" | [Support]({self.support_server_invite})"
                   f" | [Vote](https://discordbots.org/bot/604057722878689324)"
                   f" | [Website](https://github.com/albertopoljak/Licensy)")
@@ -115,7 +120,10 @@ class BotInformation(commands.Cog):
                   "Library": "discord.py",
                   "Servers": len(self.bot.guilds),
                   "Average users:": avg_members_string,
+                  "Total users": len(self.bot.users),
                   "Commands": len(self.bot.commands),
+                  "Active licenses:": active_licenses,
+                  "Stored licenses:": stored_licenses,
                   "Server info": field_content,
                   }
 
@@ -129,6 +137,14 @@ class BotInformation(commands.Cog):
 
         """
         await ctx.send(embed=info_embed(self.last_boot(), ctx.me, title="Booted:"))
+
+    @commands.command()
+    async def donate(self, ctx):
+        """
+        Support development!
+
+        """
+        await ctx.send(embed=info_embed(self.patreon_link, ctx.me, title="Thank you :)"))
 
     async def set_developers(self):
         """
@@ -156,14 +172,6 @@ class BotInformation(commands.Cog):
 
         """
         return time_ago(datetime.now() - self.bot.up_time_start_time)
-
-    @commands.command()
-    async def users(self, ctx):
-        """
-        Shows total count of users in all guilds.
-
-        """
-        await ctx.send(embed=success_embed(f"Serving {len(self.bot.users)} users!", ctx.me))
 
 
 def setup(bot):

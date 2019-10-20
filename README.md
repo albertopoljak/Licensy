@@ -10,6 +10,7 @@
 [![Contributions welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg?style=flat)](#)
 [![Python 3.6+](https://img.shields.io/badge/python-3.6%2B-blue)](#)
 [![License AGPL3](https://img.shields.io/github/license/albertopoljak/Licensy?color=red)](LICENSE.md)
+[![Donate](https://img.shields.io/badge/-Donate-052d49?logo=patreon)](https://www.patreon.com/Licensy)
 
 # Licensy - easily manage expiration of roles with subscriptions!
 

@@ -226,6 +226,12 @@ class DatabaseHandler:
             result = await cursor.fetchone()
             return result[0]
 
+    async def get_licensed_roles_total_count(self) -> int:
+        query = "SELECT COUNT(*) FROM LICENSED_MEMBERS"
+        async with self.connection.execute(query) as cursor:
+            result = await cursor.fetchone()
+            return result[0]
+
     # TABLE GUILD_LICENSES ###############################################################
 
     async def get_license_role_id(self, license: str) -> int:
@@ -302,6 +308,12 @@ class DatabaseHandler:
     async def get_guild_license_total_count(self, guild_id: int) -> int:
         query = "SELECT COUNT(*) FROM GUILD_LICENSES WHERE GUILD_ID=?"
         async with self.connection.execute(query, (guild_id,)) as cursor:
+            result = await cursor.fetchone()
+            return result[0]
+
+    async def get_stored_license_total_count(self) -> int:
+        query = "SELECT COUNT(*) FROM GUILD_LICENSES"
+        async with self.connection.execute(query) as cursor:
             result = await cursor.fetchone()
             return result[0]
 
