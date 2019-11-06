@@ -1,13 +1,18 @@
 import logging
 import json
+import os
 
 logger = logging.getLogger(__name__)
 
 
 class ConfigHandler:
-    CONFIG_PATH = "config.json"
+    CONFIG_PATH = "configs"
 
-    def __init__(self):
+    def __init__(self, config_name: str):
+        """
+        :param config_name: name of the config file without the suffix.
+        """
+        self.path = os.path.join(ConfigHandler.CONFIG_PATH, config_name + ".json")
         self.config = self._load_config()
 
     def _load_config(self) -> dict:
@@ -16,11 +21,11 @@ class ConfigHandler:
         :return: dict loaded json data
         """
         try:
-            with open(ConfigHandler.CONFIG_PATH) as cfg:
+            with open(self.path) as cfg:
                 data = json.load(cfg)
                 return data
         except FileNotFoundError as e:
-            logger.critical(f"Config json file was not found: {ConfigHandler.CONFIG_PATH} : {e}")
+            logger.critical(f"Config json file was not found: {self.path} : {e}")
         except ValueError as e:
             logger.critical(f"Invalid config json: {e}")
         except KeyError as e:
@@ -71,11 +76,9 @@ class ConfigHandler:
     def update_key(self, key, value):
         try:
             self.config[key] = value
-            with open(ConfigHandler.CONFIG_PATH, "w") as cfg:
+            with open(self.path, "w") as cfg:
                 # key vars are used to prettify outputted json
                 json.dump(self.config, cfg, indent=4, sort_keys=True)
-        except KeyError as e:
-            logger.critical(f"Key '{key}' not found in json config! Can't update config! {e}")
         except TypeError as e:
             logger.critical(f"Unable to serialize the object {e}")
         except Exception as e:
