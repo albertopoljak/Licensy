@@ -10,7 +10,7 @@ from helpers import misc
 from helpers.converters import positive_integer, license_duration
 from helpers.errors import RoleNotFound, DatabaseMissingData, GuildNotFound
 from helpers.licence_helper import construct_expiration_date, get_remaining_time
-from helpers.embed_handler import success_embed, warning_embed, failure_embed, info_embed, simple_embed
+from helpers.embed_handler import success, warning, failure, info, simple_embed
 from helpers.paginator import Paginator
 
 logger = logging.getLogger(__name__)
@@ -167,14 +167,14 @@ class LicenseHandler(commands.Cog):
             await self.bot.main_db.get_member_license_expiration_date(member.id, role.id)
         except DatabaseMissingData:
             msg = f"{member.mention} doesn't have a subscription for {role.mention} saved in the database!"
-            await ctx.send(embed=failure_embed(msg))
+            await ctx.send(embed=failure(msg))
             return
 
         # First remove the role from member because this can fail in case of changed role hierarchy.
         await member.remove_roles(role)
         await self.bot.main_db.delete_licensed_member(member.id, role.id)
         msg = f"Successfully revoked subscription for {role.mention} from {member.mention}"
-        await ctx.send(embed=success_embed(msg, ctx.me))
+        await ctx.send(embed=success(msg, ctx.me))
         logger.info(f"{ctx.author} is revoking subscription for role {role} from member {member} in guild {ctx.guild}")
 
     @commands.command()
@@ -212,15 +212,15 @@ class LicenseHandler(commands.Cog):
                            f"was moved up in the hierarchy **after** it was registered in my system "
                            f"(or mine was moved down).\n"
                            f"{e}")
-                    await ctx.send(embed=failure_embed(msg))
+                    await ctx.send(embed=failure(msg))
 
         if count:
             msg = f"Successfully revoked {count} subscriptions from {member.mention}!"
-            await ctx.send(embed=success_embed(msg, ctx.me))
+            await ctx.send(embed=success(msg, ctx.me))
             logger.info(f"{ctx.author} has revoked all subscription for member {member} in guild {ctx.guild}")
         else:
             msg = f"Couldn't revoke even a single subscription from member {member.mention}!"
-            await ctx.send(embed=warning_embed(msg))
+            await ctx.send(embed=warning(msg))
 
     @commands.command(aliases=["activate"])
     @commands.bot_has_permissions(manage_roles=True)
@@ -269,7 +269,7 @@ class LicenseHandler(commands.Cog):
                 msg = ("Well this is awkward...\n\n"
                        "The role that was supposed to be given out by this license has been deleted from this guild!"
                        f"\n\nError message:\n\n{log_error_msg}")
-                await ctx.send(embed=failure_embed(msg))
+                await ctx.send(embed=failure(msg))
                 await self.bot.main_db.delete_license(license)
                 return
             # Now before doing anything check if member already has the role
@@ -288,14 +288,14 @@ class LicenseHandler(commands.Cog):
                     msg += (f"\nThe bot did not register {member.mention} in the database with that role but somehow they have it."
                             "\nThis probably means that they were manually assigned this role without using the bot license system."
                             "\nHave someone remove the role from them and call this command again.")
-                    await ctx.send(embed=failure_embed(msg))
+                    await ctx.send(embed=failure(msg))
                     await ctx.message.delete()
                     return
 
                 remaining_time = get_remaining_time(expiration_date)
                 msg = (f"{member.mention} already has an active subscription for the {role.mention} role!"
                        f"\nIt's valid for another {remaining_time}")
-                await ctx.send(embed=warning_embed(msg))
+                await ctx.send(embed=warning(msg))
                 await ctx.message.delete()
                 return
             # We add the role to the member, we do this before adding/removing stuff from db
@@ -322,15 +322,15 @@ class LicenseHandler(commands.Cog):
                 await self.bot.main_db.add_new_licensed_member(member.id, guild.id, expiration_date, role_id)
                 msg = (f"Someone removed the role manually from {member.mention} but no worries,\n"
                        "since the license is valid we're just gonna reactivate it :)")
-                await ctx.send(embed=info_embed(msg, ctx.me))
+                await ctx.send(embed=info(msg, ctx.me))
 
             # Remove guild license from database, so it can't be redeemed again
             await self.bot.main_db.delete_license(license)
             # Send message notifying user
             msg = f"License valid - adding role {role.mention} to {member.mention} in duration of {license_duration}h"
-            await ctx.send(embed=success_embed(msg, ctx.me))
+            await ctx.send(embed=success(msg, ctx.me))
         else:
-            await ctx.send(embed=failure_embed("The license key you entered is invalid/deactivated."))
+            await ctx.send(embed=failure("The license key you entered is invalid/deactivated."))
 
     @commands.command()
     @commands.cooldown(1, 10, commands.BucketType.guild)
@@ -370,13 +370,13 @@ class LicenseHandler(commands.Cog):
         ...
         """
         if num > 25:
-            await ctx.send(embed=failure_embed("Maximum number of licenses to generate at once is 25."))
+            await ctx.send(embed=failure("Maximum number of licenses to generate at once is 25."))
             return
 
         # Check if the role is manageable by bot
         # Needed since bot isn't doing anything with the role, so no exception will occur.
         if license_role is not None and not ctx.me.top_role > license_role:
-            await ctx.send(embed=failure_embed("I can only manage roles **below** me in hierarchy."))
+            await ctx.send(embed=failure("I can only manage roles **below** me in hierarchy."))
             return
 
         guild_id = ctx.guild.id
@@ -386,12 +386,12 @@ class LicenseHandler(commands.Cog):
         guild_licences_count = await self.bot.main_db.get_guild_license_total_count(guild_id)
         if guild_licences_count == max_licenses_per_guild:
             msg = f"You have reached maximum number of unused licenses per guild: {max_licenses_per_guild}!"
-            await ctx.send(embed=warning_embed(msg))
+            await ctx.send(embed=warning(msg))
             return
         if guild_licences_count + num > max_licenses_per_guild:
             msg = (f"I can't generate since you will exceed the limit of {max_licenses_per_guild} licenses!\n"
                    f"Remaining licenses to generate: {max_licenses_per_guild-guild_licences_count}.")
-            await ctx.send(embed=failure_embed(msg))
+            await ctx.send(embed=failure(msg))
             return
 
         if license_duration is None:
@@ -412,7 +412,7 @@ class LicenseHandler(commands.Cog):
         ctx_msg = (f"Successfully generated {count_generated} licenses for role {license_role.mention}"
                    f" in duration of {license_duration}h.\n"
                    f"Sending generated licenses in DM for quick use.")
-        await ctx.send(embed=success_embed(ctx_msg, ctx.me))
+        await ctx.send(embed=success(ctx_msg, ctx.me))
 
         table = texttable.Texttable(max_width=45)
         table.set_cols_dtype(["t"])
@@ -458,7 +458,7 @@ class LicenseHandler(commands.Cog):
             to_show = await self.bot.main_db.get_guild_licenses(num, guild_id, license_role.id)
 
         if len(to_show) == 0:
-            await ctx.send(embed=failure_embed("No available licenses for that role."))
+            await ctx.send(embed=failure("No available licenses for that role."))
             return
 
         table = texttable.Texttable(max_width=60)
@@ -472,7 +472,7 @@ class LicenseHandler(commands.Cog):
 
         dm_title = f"Showing {len(to_show)} licenses for role '{license_role.name}' in guild '{ctx.guild.name}':\n\n"
 
-        await ctx.send(embed=success_embed("Sent to DM!", ctx.me), delete_after=5)
+        await ctx.send(embed=success("Sent to DM!", ctx.me), delete_after=5)
         await Paginator.paginate(self.bot, ctx.author, ctx.author, table.draw(), title=dm_title)
 
     @commands.command(alliases=["random_licenses"])
@@ -492,11 +492,11 @@ class LicenseHandler(commands.Cog):
         maximum_number = self.bot.config.get_maximum_unused_guild_licences()
 
         if number > maximum_number:
-            await ctx.send(embed=failure_embed(f"Number can't be larger than {maximum_number}!"))
+            await ctx.send(embed=failure(f"Number can't be larger than {maximum_number}!"))
             return
         to_show = await self.bot.main_db.get_random_licenses(ctx.guild.id, number)
         if not to_show:
-            await ctx.send(embed=failure_embed("No licenses saved in db."))
+            await ctx.send(embed=failure("No licenses saved in db."))
             return
 
         table = texttable.Texttable(max_width=90)
@@ -515,7 +515,7 @@ class LicenseHandler(commands.Cog):
                 table.add_row(entry)
 
         title = f"Showing {number} random licenses from guild '{ctx.guild.name}':\n\n"
-        await ctx.send(embed=success_embed("Sent to DM!", ctx.me), delete_after=5)
+        await ctx.send(embed=success("Sent to DM!", ctx.me), delete_after=5)
         await Paginator.paginate(self.bot, ctx.author, ctx.author, table.draw(), title=title)
 
     @commands.command(aliases=["data"])
@@ -535,7 +535,7 @@ class LicenseHandler(commands.Cog):
                 pass
             # We require admin permissions if you want to see other members data
             elif not ctx.author.guild_permissions.administrator:
-                await ctx.send(embed=failure_embed("You need administrator permission to see other members data."))
+                await ctx.send(embed=failure("You need administrator permission to see other members data."))
                 return
 
         table = texttable.Texttable(max_width=90)
@@ -546,7 +546,7 @@ class LicenseHandler(commands.Cog):
 
         all_active = await self.bot.main_db.get_member_data(ctx.guild.id, member.id)
         if not all_active:
-            await ctx.send(embed=failure_embed("Nothing to show."))
+            await ctx.send(embed=failure("Nothing to show."))
             return
 
         for entry in all_active:
@@ -562,7 +562,7 @@ class LicenseHandler(commands.Cog):
         title = (f"Server local time: {local_time}\n\n"
                  f"{member.name} active subscriptions in guild '{ctx.guild.name}':\n\n")
 
-        await ctx.send(embed=info_embed("Sent in Dms!", ctx.me), delete_after=5)
+        await ctx.send(embed=info("Sent in Dms!", ctx.me), delete_after=5)
         await Paginator.paginate(self.bot, ctx.author, ctx.author, table.draw(), title=title, prefix="```DNS\n")
 
     @commands.command()
@@ -575,10 +575,10 @@ class LicenseHandler(commands.Cog):
         """
         if await self.bot.main_db.is_valid_license(license, ctx.guild.id):
             await self.bot.main_db.delete_license(license)
-            await ctx.send(embed=success_embed("License deleted.", ctx.me))
+            await ctx.send(embed=success("License deleted.", ctx.me))
             logger.info(f"{ctx.author} is deleting license {license} from guild {ctx.guild}")
         else:
-            await ctx.send(embed=failure_embed("License not valid."))
+            await ctx.send(embed=failure("License not valid."))
 
     @commands.command()
     @commands.has_permissions(administrator=True)
@@ -593,10 +593,10 @@ class LicenseHandler(commands.Cog):
         def check(msg):
             return msg.author == ctx.author and msg.channel == ctx.channel and msg.content == "yes"
 
-        await ctx.send(embed=warning_embed("Are you sure? Reply with case sensitive `yes` in the next 15s to proceed."))
+        await ctx.send(embed=warning("Are you sure? Reply with case sensitive `yes` in the next 15s to proceed."))
         await self.bot.wait_for("message", check=check, timeout=15)
         await self.bot.main_db.remove_all_stored_guild_licenses(ctx.guild.id)
-        await ctx.send(embed=success_embed("Done!", ctx.me))
+        await ctx.send(embed=success("Done!", ctx.me))
 
     async def handle_missing_default_role(self, ctx, missing_role_id: int):
         """
@@ -614,7 +614,7 @@ class LicenseHandler(commands.Cog):
                f"anymore in the list of roles!\n\n"
                f"It's saved in the database but it looks like it was deleted from the guild.\n"
                f"Please update it.")
-        await ctx.send(embed=failure_embed(msg))
+        await ctx.send(embed=failure(msg))
 
 
 def setup(bot):

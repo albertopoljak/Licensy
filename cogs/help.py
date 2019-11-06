@@ -1,7 +1,7 @@
 import logging
 import discord
 from discord.ext import commands
-from helpers.embed_handler import info_embed
+from helpers.embed_handler import info
 from helpers.misc import embed_space, get_top_role_color
 
 logger = logging.getLogger(__name__)
@@ -107,7 +107,7 @@ class Help(commands.Cog):
                    "During that time the bot may stop responding to commands, but this is only for <5 minutes. "
                    "After that everything is back to normal."
                    )
-        await ctx.send(embed=info_embed(bot_faq, ctx.me, title=disclaimer))
+        await ctx.send(embed=info(bot_faq, ctx.me, title=disclaimer))
 
     @commands.command()
     async def quickstart(self, ctx):
@@ -117,7 +117,7 @@ class Help(commands.Cog):
         """
         description = (f"To avoid repeating see **[github link]({self.github_bot_quick_start})** where quickstart "
                        f"is explained in detail.")
-        await ctx.send(embed=info_embed(description, ctx.me, title="Quickstart :)"))
+        await ctx.send(embed=info(description, ctx.me, title="Quickstart :)"))
 
 
 def setup(bot):

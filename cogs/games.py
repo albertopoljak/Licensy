@@ -5,7 +5,7 @@ import discord
 from discord.ext import commands
 from discord.errors import NotFound
 from helpers.converters import positive_integer
-from helpers.embed_handler import info_embed, failure_embed
+from helpers.embed_handler import info, failure
 
 logger = logging.getLogger(__name__)
 
@@ -19,13 +19,13 @@ class Games(commands.Cog):
     @commands.guild_only()
     async def giveaway(self, ctx, duration_minutes: positive_integer, channel: discord.TextChannel):
         if duration_minutes > 1440:
-            await ctx.send(embed=failure_embed("Maximum duration is 24h!"), delete_after=5)
+            await ctx.send(embed=failure("Maximum duration is 24h!"), delete_after=5)
             return
 
         description = "React to this message to enter the giveaway and a chance to win license!"
         event_title = "Giveaway!"
         emoji = "🎉"
-        message = await channel.send(embed=info_embed(description, ctx.me, title=event_title))
+        message = await channel.send(embed=info(description, ctx.me, title=event_title))
         await message.add_reaction(emoji)
 
         await asyncio.sleep(duration_minutes*60)
@@ -46,11 +46,11 @@ class Games(commands.Cog):
                 if choices:
                     winner = random.choice(choices)
                     edit_description = f"Giveaway has finished,\n{winner.mention} has won the raffle!"
-                    await message.edit(embed=info_embed(edit_description, ctx.me, title=event_title))
+                    await message.edit(embed=info(edit_description, ctx.me, title=event_title))
                     await channel.send(f"{winner.mention} has won the raffle.", delete_after=10)
                 else:
                     edit_description = "Giveaway has finished, no one reacted :("
-                    await message.edit(embed=info_embed(edit_description, ctx.me, title=event_title))
+                    await message.edit(embed=info(edit_description, ctx.me, title=event_title))
             break
 
 

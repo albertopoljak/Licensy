@@ -2,7 +2,7 @@ import logging
 import discord
 from aiosqlite import IntegrityError
 from discord.ext import commands
-from helpers.embed_handler import success_embed, failure_embed
+from helpers.embed_handler import success, failure
 from helpers.converters import license_duration
 
 logger = logging.getLogger(__name__)
@@ -40,16 +40,16 @@ class Guild(commands.Cog):
 
         """
         if ctx.prefix == prefix:
-            await ctx.send(embed=failure_embed(f"Already using prefix **{prefix}**"))
+            await ctx.send(embed=failure(f"Already using prefix **{prefix}**"))
             return
 
         try:
             await self.bot.main_db.change_guild_prefix(ctx.guild.id, prefix)
         except IntegrityError:
-            await ctx.send(embed=failure_embed("Prefix is too long! Maximum of 5 characters please."))
+            await ctx.send(embed=failure("Prefix is too long! Maximum of 5 characters please."))
             return
 
-        await ctx.send(embed=success_embed(f"Successfully changed prefix to **{prefix}**", ctx.me))
+        await ctx.send(embed=success(f"Successfully changed prefix to **{prefix}**", ctx.me))
 
     @commands.command()
     @commands.has_permissions(administrator=True)
@@ -64,10 +64,10 @@ class Guild(commands.Cog):
         """
         # Check if the role is manageable by bot
         if not ctx.me.top_role > role:
-            await ctx.send(embed=failure_embed("I can only manage roles **below** me in hierarchy."))
+            await ctx.send(embed=failure("I can only manage roles **below** me in hierarchy."))
             return
         await self.bot.main_db.change_default_guild_role(ctx.guild.id, role.id)
-        await ctx.send(embed=success_embed(f"{role.mention} set as default!", ctx.me))
+        await ctx.send(embed=success(f"{role.mention} set as default!", ctx.me))
 
     @commands.command(aliases=["license_expiration", "expiration"])
     @commands.has_permissions(administrator=True)
@@ -96,7 +96,7 @@ class Guild(commands.Cog):
 
         """
         await self.bot.main_db.change_default_license_expiration(ctx.guild.id, expiration)
-        await ctx.send(embed=success_embed(f"Default license expiration set to **{expiration}h**!", ctx.me))
+        await ctx.send(embed=success(f"Default license expiration set to **{expiration}h**!", ctx.me))
 
     @commands.command()
     @commands.guild_only()
@@ -124,7 +124,7 @@ class Guild(commands.Cog):
                        f"It's saved in the database but it looks like it was deleted from the guild.\n"
                        f"Please update it.")
                 logger.critical(log)
-                await ctx.send(embed=failure_embed(msg))
+                await ctx.send(embed=failure(msg))
             else:
                 default_license_role = default_license_role.mention
         else:
@@ -137,7 +137,7 @@ class Guild(commands.Cog):
                f"Stored licenses: **{stored_license_count}**\n"
                f"Active role subscriptions: **{active_license_count}**")
 
-        await ctx.send(embed=success_embed(msg, ctx.me))
+        await ctx.send(embed=success(msg, ctx.me))
 
 
 def setup(bot):

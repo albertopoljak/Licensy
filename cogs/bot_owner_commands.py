@@ -2,7 +2,7 @@ import logging
 import asyncio
 import discord
 from discord.ext import commands
-from helpers.embed_handler import success_embed, failure_embed
+from helpers.embed_handler import success, failure
 from helpers.misc import tail
 from helpers.paginator import Paginator
 from helpers.converters import license_duration
@@ -59,7 +59,7 @@ class BotOwnerCommands(commands.Cog):
 
         """
         if "//www.twitch.tv" not in url:
-            await ctx.send(embed=failure_embed("Only twitch urls supported!"))
+            await ctx.send(embed=failure("Only twitch urls supported!"))
             return
         await self.bot.change_presence(activity=discord.Streaming(name=name, url=url))
         logger.info(f"Successfully set presence to **Streaming {name}**.")
@@ -86,7 +86,7 @@ class BotOwnerCommands(commands.Cog):
         self.bot.config.reload_config()
         msg = "Successfully reloaded config."
         logger.info(msg)
-        await ctx.send(embed=success_embed(msg, ctx.me))
+        await ctx.send(embed=success(msg, ctx.me))
 
     @commands.command(hidden=True)
     @commands.is_owner()
@@ -112,9 +112,9 @@ class BotOwnerCommands(commands.Cog):
 
         """
         if await self.bot.main_db.is_valid_license(license, ctx.guild.id):
-            await ctx.send(embed=success_embed("License is valid", ctx.me))
+            await ctx.send(embed=success("License is valid", ctx.me))
         else:
-            await ctx.send(embed=failure_embed(f"License is not valid."))
+            await ctx.send(embed=failure(f"License is not valid."))
 
     @commands.command(hidden=True)
     @commands.is_owner()
@@ -126,7 +126,7 @@ class BotOwnerCommands(commands.Cog):
         message = (f"Loaded guilds: {len(loaded_guilds)}\n"
                    f"Database guilds: {len(db_guilds)}\n"
                    f"Difference: {difference}")
-        await ctx.send(embed=success_embed(message, ctx.me))
+        await ctx.send(embed=success(message, ctx.me))
 
     @commands.command(hidden=True)
     @commands.is_owner()
@@ -173,7 +173,7 @@ class BotOwnerCommands(commands.Cog):
                   f"Stored licenses: **{stored_license_count}**\n"
                   f"Active role subscriptions: **{active_license_count}**")
 
-        await ctx.send(embed=success_embed(f"{db_msg}\n\n{loaded_msg}", ctx.me))
+        await ctx.send(embed=success(f"{db_msg}\n\n{loaded_msg}", ctx.me))
 
     @commands.command(hidden=True)
     @commands.is_owner()
@@ -184,7 +184,7 @@ class BotOwnerCommands(commands.Cog):
 
         """
         await self.bot.main_db.remove_all_guild_data(guild_id, guild_too)
-        await ctx.send(embed=success_embed("Done", ctx.me))
+        await ctx.send(embed=success("Done", ctx.me))
 
     @commands.command(hidden=True)
     @commands.is_owner()
@@ -192,7 +192,7 @@ class BotOwnerCommands(commands.Cog):
                                         *, license_dur: license_duration):
         expiration_date = construct_expiration_date(license_dur)
         await self.bot.main_db.add_new_licensed_member(member.id, ctx.guild.id, expiration_date, role.id)
-        await ctx.send(embed=success_embed("Done", ctx.me))
+        await ctx.send(embed=success("Done", ctx.me))
 
 
 def setup(bot):

@@ -1,4 +1,5 @@
-from discord import Embed, Colour, Member
+from typing import Union
+from discord import Embed, Colour, Member, User
 from helpers import misc
 
 
@@ -7,7 +8,7 @@ def simple_embed(message: str, title: str, color: Colour) -> Embed:
     return embed
 
 
-def info_embed(message: str, member: Member, title: str = Embed.Empty) -> Embed:
+def info(message: str, member: Union[Member, User, None], title: str = Embed.Empty) -> Embed:
     """
     Constructs success embed with custom title and description.
     Color depends on passed member top role color.
@@ -21,7 +22,7 @@ def info_embed(message: str, member: Member, title: str = Embed.Empty) -> Embed:
     return embed
 
 
-def success_embed(message: str, member: Member) -> Embed:
+def success(message: str, member: Union[Member, User, None]) -> Embed:
     """
     Constructs success embed with fixed title:Success and color depending
     on passed member top role color.
@@ -36,7 +37,7 @@ def success_embed(message: str, member: Member) -> Embed:
     return simple_embed(message, "Success", misc.get_top_role_color(member))
 
 
-def warning_embed(message: str) -> Embed:
+def warning(message: str) -> Embed:
     """
     Constructs warning embed with fixed title:Warning and color:gold
     :param message: embed description
@@ -46,7 +47,7 @@ def warning_embed(message: str) -> Embed:
     return simple_embed(message, "Warning", Colour.dark_gold())
 
 
-def failure_embed(message: str) -> Embed:
+def failure(message: str) -> Embed:
     """
     Constructs failure embed with fixed title:Failure and color:red
     :param message: embed description

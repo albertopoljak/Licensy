@@ -6,7 +6,7 @@ import discord
 from datetime import datetime
 from discord.ext import commands, tasks
 from helpers.misc import construct_load_bar_string, construct_embed, time_ago, embed_space
-from helpers.embed_handler import info_embed
+from helpers.embed_handler import info
 
 logger = logging.getLogger(__name__)
 
@@ -49,11 +49,11 @@ class BotInformation(commands.Cog):
 
         """
         before = time.monotonic()
-        message = await ctx.send(embed=info_embed("Pong", ctx.me))
+        message = await ctx.send(embed=info("Pong", ctx.me))
         ping = (time.monotonic() - before) * 1000
         content = (f":ping_pong:   |   {int(ping)}ms\n"
                    f":timer:   |   {self.bot.latency * 1000:.0f}ms")
-        await message.edit(embed=info_embed(content, ctx.me, title="Results:"))
+        await message.edit(embed=info(content, ctx.me, title="Results:"))
 
     @commands.command()
     async def invite(self, ctx):
@@ -63,7 +63,7 @@ class BotInformation(commands.Cog):
         """
         invite_link = self._get_bot_invite_link()
         description = f"Use this **[invite link]({invite_link})** to invite me."
-        await ctx.send(embed=info_embed(description, ctx.me, title="Invite me :)"))
+        await ctx.send(embed=info(description, ctx.me, title="Invite me :)"))
 
     def _get_bot_invite_link(self):
         perms = discord.Permissions()
@@ -77,7 +77,7 @@ class BotInformation(commands.Cog):
 
         """
         description = f"Join **[support server]({self.support_server_invite})** for questions, suggestions and support."
-        await ctx.send(embed=info_embed(description, ctx.me, title="Ask away!"))
+        await ctx.send(embed=info(description, ctx.me, title="Ask away!"))
 
     @commands.command(aliases=["stats", "status", "server"])
     @commands.cooldown(1, 10, commands.BucketType.user)
@@ -154,7 +154,7 @@ class BotInformation(commands.Cog):
         Time since boot.
 
         """
-        await ctx.send(embed=info_embed(self.last_boot(), ctx.me, title="Booted:"))
+        await ctx.send(embed=info(self.last_boot(), ctx.me, title="Booted:"))
 
     @commands.command()
     async def donate(self, ctx):
@@ -162,7 +162,7 @@ class BotInformation(commands.Cog):
         Support development!
 
         """
-        await ctx.send(embed=info_embed(self.patreon_link, ctx.me, title="Thank you :)"))
+        await ctx.send(embed=info(self.patreon_link, ctx.me, title="Thank you :)"))
 
     async def set_developers(self):
         """
