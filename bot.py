@@ -9,6 +9,7 @@ from database_handler import DatabaseHandler
 from config_handler import ConfigHandler
 from helpers import logger_handlers, embed_handler
 from helpers.embed_handler import success
+from helpers.licence_helper import get_current_time
 
 root_logger = logging.getLogger()
 root_logger.setLevel(logging.INFO)
@@ -17,7 +18,7 @@ root_logger.addHandler(logger_handlers.get_file_handler())
 logger = logging.getLogger("discord")
 logger.setLevel(logging.WARNING)
 
-config_handler = ConfigHandler()
+config_handler = ConfigHandler("config")
 database_handler = asyncio.get_event_loop().run_until_complete(DatabaseHandler.create())
 
 startup_extensions = ["licenses",
@@ -51,7 +52,7 @@ async def prefix_callable(bot_client, message):
 bot = commands.Bot(command_prefix=prefix_callable, description=config_handler.get_description(), case_insensitive=True)
 bot.config = config_handler
 bot.main_db = database_handler
-bot.up_time_start_time = datetime.now()
+bot.up_time_start_time = get_current_time()
 
 if __name__ == "__main__":
     root_logger.info("Loaded extensions:")

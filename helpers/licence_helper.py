@@ -22,7 +22,7 @@ def construct_expiration_date(license_duration_hours: int) -> datetime:
     :return: datetime current time incremented by param license_duration_hours
 
     """
-    expiration_date = datetime.now() + timedelta(hours=license_duration_hours)
+    expiration_date = get_current_time() + timedelta(hours=license_duration_hours)
     return expiration_date
 
 
@@ -35,7 +35,21 @@ def get_remaining_time(expiration_date: str) -> str:
     # Convert string to datetime
     expiration_datetime = datetime.strptime(expiration_date, "%Y-%m-%d %H:%M:%S.%f")
     # timedelta object
-    difference = expiration_datetime-datetime.now()
+    difference = expiration_datetime - get_current_time()
     # difference has ms in it so we remove it here for nicer display
     difference = str(difference).split(".")[0]
     return difference
+
+
+def get_current_time() -> datetime:
+    """
+    Helper function that needs to be called every time we need current time.
+    Makes it easy to change timezone.
+    Currently change it inside of this function only, note that if you have
+    saved licenses changing this will break them (either they will expire prematurely by few hours or they could
+    possibly never expire!)
+    """
+    return datetime.now()
+
+
+get_current_time()

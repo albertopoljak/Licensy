@@ -3,9 +3,9 @@ import time
 import psutil
 import logging
 import discord
-from datetime import datetime
 from discord.ext import commands, tasks
 from helpers.misc import construct_load_bar_string, construct_embed, time_ago, embed_space
+from helpers.licence_helper import get_current_time
 from helpers.embed_handler import info
 
 logger = logging.getLogger(__name__)
@@ -189,7 +189,7 @@ class BotInformation(commands.Cog):
         :return: str last boot time
 
         """
-        return time_ago(datetime.now() - self.bot.up_time_start_time)
+        return time_ago(get_current_time() - self.bot.up_time_start_time)
 
 
 def setup(bot):

@@ -9,7 +9,7 @@ from aiosqlite import IntegrityError
 from helpers import misc
 from helpers.converters import positive_integer, license_duration
 from helpers.errors import RoleNotFound, DatabaseMissingData, GuildNotFound
-from helpers.licence_helper import construct_expiration_date, get_remaining_time
+from helpers.licence_helper import construct_expiration_date, get_remaining_time, get_current_time
 from helpers.embed_handler import success, warning, failure, info, simple_embed
 from helpers.paginator import Paginator
 
@@ -78,7 +78,7 @@ class LicenseHandler(commands.Cog):
         :return: True if license is expired, False otherwise
 
         """
-        if expiration_date < datetime.now():
+        if expiration_date < get_current_time():
             # Expired
             return True
         else:
@@ -558,7 +558,7 @@ class LicenseHandler(commands.Cog):
                 # Just in case if error in case role is None (deleted from guild) just show IDs from database
                 table.add_row(entry)
 
-        local_time = datetime.now()
+        local_time = get_current_time()
         title = (f"Server local time: {local_time}\n\n"
                  f"{member.name} active subscriptions in guild '{ctx.guild.name}':\n\n")
 
