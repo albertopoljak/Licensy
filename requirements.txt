@@ -1,4 +1,4 @@
-discord.py==1.2.3
+discord.py==1.2.5
 python-dateutil
 aiosqlite
 texttable
