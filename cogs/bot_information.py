@@ -37,6 +37,19 @@ class BotInformation(commands.Cog):
         await self.bot.wait_until_ready()
         logger.info("Activity loop started!")
 
+    @commands.Cog.listener()
+    async def on_message(self, message):
+        # If bot is mentioned in message (both in guild and DM) show it's prefix
+        if message.mentions and not message.author.bot and self.bot.user in message.mentions:
+            if message.guild is None:
+                prefix = self.bot.config["default_prefix"]
+                msg = f"My prefix here is **{prefix}**"
+                await message.channel.send(embed=info(msg, None))
+            else:
+                prefix = await self.bot.main_db.get_guild_prefix(message.guild.id)
+                msg = f"My prefix in this guild is **{prefix}**"
+                await message.channel.send(embed=info(msg, message.guild.me))
+
     @commands.command()
     async def ping(self, ctx):
         """
@@ -74,7 +87,8 @@ class BotInformation(commands.Cog):
         Shows invite to the support server.
 
         """
-        description = f"Join **[support server]({self.bot.config['support_channel_invite']})** for questions, suggestions and support."
+        description = (f"Join **[support server]({self.bot.config['support_channel_invite']})** "
+                       f"for questions, suggestions and support.")
         await ctx.send(embed=info(description, ctx.me, title="Ask away!"))
 
     @commands.command(aliases=["stats", "status", "server"])
