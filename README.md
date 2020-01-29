@@ -134,10 +134,10 @@ $ cd Licensy
 $ pip install -r requirements.txt
 ```
 
-Note that discord.py version that was used in development is 1.2.3
+Note that discord.py version that was used in development is 1.2.5
 , anything above that (except for mayor version changes) should work.
 
-Nevertheless for compatibility reasons the `requirements.txt` will target specifically v1.2.3
+Nevertheless for compatibility reasons the `requirements.txt` will target specifically v1.2.5
 but if you are sure that there are no breaking changes in future version feel free to update.
 
 Before running the bot edit the `config.json` found in the root directory.
@@ -154,7 +154,7 @@ log file and database file, including folders for them.
 
 Invite the bot to any guild, it will create database guild entry upon joining.
 
-Further steps on how to use the bot are in [Quickstart bot usage](#quickstart bot usage)
+Further steps on how to use the bot are in [Quickstart bot usage](#quickstart-bot-usage)
 
 ## Authors
 
