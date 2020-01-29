@@ -62,7 +62,8 @@ def log_embed(*messages, ctx=None, title="Log"):
     for index, message in enumerate(messages):
         embed.add_field(name=f"Message {index+1}:", value=message, inline=True)
     if ctx is not None:
-        footer = f"Guild: {ctx.guild.id}    Author: {ctx.author}"
+        guild = "DM" if ctx.guild.id is None else ctx.guild.id
+        footer = f"Guild: {guild}    Author: {ctx.author}"
         embed.set_footer(text=footer)
     return embed
 
