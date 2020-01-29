@@ -222,7 +222,7 @@ class LicenseHandler(commands.Cog):
             msg = f"Couldn't revoke even a single subscription from member {member.mention}!"
             await ctx.send(embed=warning(msg))
 
-    @commands.command(aliases=["activate"])
+    @commands.command(aliases=["authorize", "activate"])
     @commands.bot_has_permissions(manage_roles=True)
     @commands.guild_only()
     async def redeem(self, ctx, license):
