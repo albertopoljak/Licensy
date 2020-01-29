@@ -13,7 +13,7 @@ class TopGGApi(commands.Cog):
         self.dbl_client = dbl.DBLClient(self.bot, self.bot.config["top_gg_api_key"])
         self.update_stats_loop.start()
 
-    @tasks.loop(hours=1.0)
+    @tasks.loop(hours=12.0)
     async def update_stats_loop(self):
         """This function runs every 1 hour to automatically update server count on top.gg"""
         try:
