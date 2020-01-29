@@ -223,8 +223,6 @@ class LicenseHandler(commands.Cog):
             await ctx.send(embed=warning(msg))
 
     @commands.command(aliases=["authorize", "activate"])
-    @commands.bot_has_permissions(manage_roles=True)
-    @commands.guild_only()
     async def redeem(self, ctx, license):
         """
         Adds role to member who invoked the command.
@@ -235,7 +233,8 @@ class LicenseHandler(commands.Cog):
 
         TODO: Better security (right now license is visible in plain sight in guild)
         """
-        await self.activate_license(ctx, license, ctx.author)
+        license_guild_id, license_role_id = await self.bot.main_db.get_license_data(license)
+        await self.activate_license(ctx, license, license_guild_id, license_role_id, ctx.author)
 
     @commands.command(allieses=["add_license"])
     @commands.has_permissions(manage_roles=True)
@@ -245,21 +244,42 @@ class LicenseHandler(commands.Cog):
         Manually add license to member.
 
         """
-        await self.activate_license(ctx, license, member)
+        license_guild_id, license_role_id = await self.bot.main_db.get_license_data(license)
+        await self.activate_license(ctx, license, license_guild_id, license_role_id, member)
         logger.info(f"{ctx.author} is adding license {license} to member {member} in guild {ctx.guild}")
 
-    async def activate_license(self, ctx, license, member):
+    async def activate_license(self, ctx, license, guild_id: int, role_id: int, member):
         """
         :param ctx: invoked context
+        :param guild_id: guild id tied to license
+        :param role_id: role id tied to license
         :param license: license to add
-        :param member: who to give role to
+        :param member: who to give role to. Union[User, Member] depending if called in guild or Dm
         """
-        guild = ctx.guild
+        guild = self.bot.get_guild(guild_id)
+        if guild is None:
+            await ctx.send(embed=failure("Guild tied to that license not found in bot guilds."))
+            return
+
+        # Decorator won't work in DM so have to manually check
+        if not guild.me.guild_permissions.manage_roles:
+            await ctx.send(embed=failure(f"Guild '{guild.name}' , can't assign roles - no manage roles permission."))
+            if ctx.guild is not None:
+                # delete message but only if in guild, can't delete dm messages
+                await ctx.message.delete()
+            return
+
+        # Passed member can be a user if redeem was activated in dm, so get the member
+        if ctx.guild is None:
+            member = guild.get_member(member.id)
+            if member is None:
+                await ctx.send(embed=failure("You are no longer it the guild you're trying to activate license!"))
+                return
+
         if await self.bot.main_db.is_valid_license(license, guild.id):
             # Adding role to the member requires that role object
             # First we get the role linked to the license
-            role_id = await self.bot.main_db.get_license_role_id(license)
-            role = ctx.guild.get_role(role_id)
+            role = guild.get_role(role_id)
             if role is None:
                 log_error_msg = (f"Can't find role {role_id} in guild {guild.id} '{guild.name}' "
                                  f"from license: '{license}' member to give the role to: {member.id} '{member.name}'"
@@ -327,7 +347,7 @@ class LicenseHandler(commands.Cog):
             # Remove guild license from database, so it can't be redeemed again
             await self.bot.main_db.delete_license(license)
             # Send message notifying user
-            msg = f"License valid - adding role {role.mention} to {member.mention} in duration of {license_duration}h"
+            msg = f"License valid - guild '{guild.name}' adding role '{role.name}' to {member.mention} in duration of {license_duration}h"
             await ctx.send(embed=success(msg, ctx.me))
         else:
             await ctx.send(embed=failure("The license key you entered is invalid/deactivated."))

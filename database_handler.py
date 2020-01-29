@@ -234,17 +234,17 @@ class DatabaseHandler:
 
     # TABLE GUILD_LICENSES ###############################################################
 
-    async def get_license_role_id(self, license: str) -> int:
+    async def get_license_data(self, license: str) -> Tuple[int, int]:
         """
         Returns licensed role id that the param license is linked to
         :param license: license the role is linked to
-        :return: int license role id
+        :return: tuple(int guild id, int license role id)
 
         """
-        query = "SELECT LICENSED_ROLE_ID FROM GUILD_LICENSES WHERE LICENSE=?"
+        query = "SELECT GUILD_ID, LICENSED_ROLE_ID FROM GUILD_LICENSES WHERE LICENSE=?"
         async with self.connection.execute(query, (license,)) as cursor:
             row = await cursor.fetchone()
-            return int(row[0])
+            return int(row[0]), int(row[1])
 
     async def get_license_duration_hours(self, license):
         """
