@@ -118,10 +118,11 @@ def tail(n=1):
 
 
 # Embeds are not monospaced so we need to use spaces to make different lines "align"
-# But discord doesn't like spaces and strips them down.
-# Using a combination of zero width space + regular space solves stripping problem.
-# DO NOT REMOVE THE SPACE PREFIX because without it when copy pasting it will copy zero width space too and cause
-# problems because the copied string is visually identical BUT it's not the same! Example copy pasting from help
-# command will result in "Command not found." even tho it's visually the same command string!
-embed_space = " \u200b "
-
+# But discord doesn't like spaces and strips them down, however it doesn't do that with zero
+# width space.
+# Remember that when copy pasting it will copy ZWS too and can cause problems because the
+# copied string is visually identical BUT it's not the same!
+# Example copy pasting from help command will result in "Command not found." even tho it's
+# visually the same command string! So in short in help command don't do this format:
+# prefix + command_name as copy pasting will not work, however just command_name name is fine.
+embed_space = "\u200b "

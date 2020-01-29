@@ -87,7 +87,7 @@ class Help(commands.Cog):
 
                    "**8. How many stored licenses per guild?**\n"
                    "Limit for stored (unactivated) licenses is "
-                   f"{self.bot.config.get_maximum_unused_guild_licences()} per guild.\n\n"
+                   f"{self.bot.config['maximum_unused_guild_licences']} per guild.\n\n"
                    
                    "**9. How many activated licenses per member?**\n"
                    "Members can have unlimited subscriptions active at the same time! "

@@ -1,18 +1,18 @@
 import logging
 import json
-import os
+from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
 
 class ConfigHandler:
-    CONFIG_PATH = ""
+    CONFIG_DIR = Path("")
 
     def __init__(self, config_name: str):
         """
         :param config_name: name of the config file without the suffix.
         """
-        self.path = os.path.join(ConfigHandler.CONFIG_PATH, config_name + ".json")
+        self.path = ConfigHandler.CONFIG_DIR / (config_name + ".json")
         self.config = self._load_config()
 
     def _load_config(self) -> dict:
@@ -41,31 +41,10 @@ class ConfigHandler:
         """
         self.config = self._load_config()
 
-    def get_description(self) -> str:
-        return self.get_key("bot_description")
+    def __getitem__(self, key: str):
+        return self._get_key(key)
 
-    def get_default_prefix(self) -> str:
-        return self.get_key("default_prefix")
-
-    def get_developers(self) -> dict:
-        return self.get_key("developers")
-
-    def get_developer_log_channel_id(self) -> int:
-        return int(self.get_key("developer_log_channel_id"))
-
-    def get_support_channel_invite(self) -> str:
-        return self.get_key("support_channel_invite")
-
-    def get_maximum_unused_guild_licences(self) -> int:
-        return self.get_key("maximum_unused_guild_licences")
-
-    def get_top_gg_api_key(self) -> str:
-        return self.get_key("top_gg_api_key")
-
-    def get_token(self) -> str:
-        return self.get_key("token")
-
-    def get_key(self, key):
+    def _get_key(self, key: str):
         try:
             return self.config[key]
         except KeyError as e:
@@ -77,7 +56,6 @@ class ConfigHandler:
         try:
             self.config[key] = value
             with open(self.path, "w") as cfg:
-                # key vars are used to prettify outputted json
                 json.dump(self.config, cfg, indent=4, sort_keys=True)
         except TypeError as e:
             logger.critical(f"Unable to serialize the object {e}")

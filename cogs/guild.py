@@ -22,7 +22,7 @@ class Guild(commands.Cog):
             if guild.id not in db_guilds_ids:
                 logger.info(f"Guild {guild.id} {guild} found but not registered. "
                             f"Adding entry to database.")
-                await self.bot.main_db.setup_new_guild(guild.id, self.bot.config.get_default_prefix())
+                await self.bot.main_db.setup_new_guild(guild.id, self.bot.config["default_prefix"])
 
         # Do not code the other way around
         # aka deleting database data if the guild in database doesn't exist in bot guilds

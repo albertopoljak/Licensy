@@ -127,7 +127,7 @@ class LicenseHandler(commands.Cog):
     async def on_guild_join(self, guild):
         logger.info(f"Guild {guild.name} {guild.id} joined.")
         guild_id = guild.id
-        default_prefix = self.bot.config.get_default_prefix()
+        default_prefix = self.bot.config["default_prefix"]
         await self.bot.main_db.setup_new_guild(guild_id, default_prefix)
         logger.info(f"Guild {guild.name} {guild.id} database data added.")
 
@@ -382,7 +382,7 @@ class LicenseHandler(commands.Cog):
         guild_id = ctx.guild.id
 
         # Maximum number of unused licenses
-        max_licenses_per_guild = self.bot.config.get_maximum_unused_guild_licences()
+        max_licenses_per_guild = self.bot.config["maximum_unused_guild_licences"]
         guild_licences_count = await self.bot.main_db.get_guild_license_total_count(guild_id)
         if guild_licences_count == max_licenses_per_guild:
             msg = f"You have reached maximum number of unused licenses per guild: {max_licenses_per_guild}!"
@@ -442,7 +442,7 @@ class LicenseHandler(commands.Cog):
         Sends results in DM to the user who invoked the command.
 
         """
-        num = self.bot.config.get_maximum_unused_guild_licences()
+        num = self.bot.config["maximum_unused_guild_licences"]
 
         guild_id = ctx.guild.id
         if license_role is None:
@@ -489,7 +489,7 @@ class LicenseHandler(commands.Cog):
         Sends results in DM to the user who invoked the command.
 
         """
-        maximum_number = self.bot.config.get_maximum_unused_guild_licences()
+        maximum_number = self.bot.config["maximum_unused_guild_licences"]
 
         if number > maximum_number:
             await ctx.send(embed=failure(f"Number can't be larger than {maximum_number}!"))

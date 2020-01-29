@@ -40,7 +40,7 @@ async def prefix_callable(bot_client, message):
         If fetching prefix from database errors just use the default prefix.
         This is also used in DMs where the guild is None
         """
-        default_prefix = config_handler.get_default_prefix()
+        default_prefix = config_handler["default_prefix"]
         if message.guild is not None:
             # Don't spam the log if it's DMs
             # We only want to log it in case guild prefix is missing
@@ -49,7 +49,7 @@ async def prefix_callable(bot_client, message):
         return default_prefix
 
 
-bot = commands.Bot(command_prefix=prefix_callable, description=config_handler.get_description(), case_insensitive=True)
+bot = commands.Bot(command_prefix=prefix_callable, description=config_handler["bot_description"], case_insensitive=True)
 bot.config = config_handler
 bot.main_db = database_handler
 bot.up_time_start_time = get_current_time()
@@ -146,7 +146,7 @@ async def on_error(event: str, *args, **kwargs):
     root_logger.critical(log_message)
     root_logger.critical(traceback_message)
     if bot.is_ready():
-        log_channel = bot.get_channel(config_handler.get_developer_log_channel_id())
+        log_channel = bot.get_channel(config_handler["developer_log_channel_id"])
         embed = embed_handler.log_embed(log_message, title="on_error exception!")
         embed_traceback = embed_handler.traceback_embed(traceback_message)
         if log_channel is not None:
@@ -154,4 +154,4 @@ async def on_error(event: str, *args, **kwargs):
             await log_channel.send(embed=embed_traceback)
 
 
-bot.run(bot.config.get_token())
+bot.run(bot.config["token"])

@@ -10,7 +10,7 @@ class TopGGApi(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
-        self.dbl_client = dbl.DBLClient(self.bot, self.bot.config.get_top_gg_api_key())
+        self.dbl_client = dbl.DBLClient(self.bot, self.bot.config["top_gg_api_key"])
         self.update_stats_loop.start()
 
     @tasks.loop(hours=1.0)

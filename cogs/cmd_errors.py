@@ -146,7 +146,7 @@ class CmdErrors(commands.Cog):
         logger.critical(f"{exception_message}")
         logger.critical(traceback_message)
         if self.bot.is_ready():
-            log_channel = self.bot.get_channel(self.bot.config.get_developer_log_channel_id())
+            log_channel = self.bot.get_channel(self.bot.config["developer_log_channel_id"])
             embed = log_embed(exception_message, ctx=ctx, title="Command error!")
             trace_embed = traceback_embed(traceback_message)
             if log_channel is not None:
@@ -161,7 +161,7 @@ class CmdErrors(commands.Cog):
         :return: Bool if developer or not.
         """
         # Developers can bypass guild permissions
-        if ctx.message.author.id in self.bot.config.get_developers().values():
+        if ctx.message.author.id in self.bot.config["developers"].values():
             # reinvoke() bypasses error handlers so we surround it with try/catch and just
             # send errors to ctx
             try:

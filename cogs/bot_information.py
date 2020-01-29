@@ -18,7 +18,7 @@ class BotInformation(commands.Cog):
         # Fetch developers only once, at start
         self.bot.loop.create_task(self.set_developers())
         self.process = psutil.Process(os.getpid())
-        self.support_server_invite = self.bot.config.get_support_channel_invite()
+        self.support_server_invite = self.bot.config["support_channel_invite"]
         self.patreon_link = "https://www.patreon.com/Licensy"
         self.activity = 0
         self.activity_loop.start()
@@ -173,7 +173,7 @@ class BotInformation(commands.Cog):
         # Absolutely needed, otherwise we will try to fetch_user
         # before the bot is connected to discord thus getting an exception
         await self.bot.wait_until_ready()
-        developer_ids = self.bot.config.get_developers().values()
+        developer_ids = self.bot.config["developers"].values()
         developers = []
         for value_id in developer_ids:
             developer = await self.bot.fetch_user(value_id)
