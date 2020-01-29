@@ -6,7 +6,7 @@ logger = logging.getLogger(__name__)
 
 
 class ConfigHandler:
-    CONFIG_PATH = "configs"
+    CONFIG_PATH = ""
 
     def __init__(self, config_name: str):
         """

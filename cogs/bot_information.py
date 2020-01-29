@@ -80,7 +80,7 @@ class BotInformation(commands.Cog):
         await ctx.send(embed=info(description, ctx.me, title="Ask away!"))
 
     @commands.command(aliases=["stats", "status", "server"])
-    @commands.cooldown(1, 10, commands.BucketType.user)
+    @commands.cooldown(1, 10, commands.BucketType.guild)
     async def about(self, ctx):
         """
         Show bot information (stats/links/etc).
