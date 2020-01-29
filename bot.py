@@ -2,7 +2,6 @@ import traceback
 import logging
 import asyncio
 import sys
-from datetime import datetime
 import discord
 from discord.ext import commands
 from database_handler import DatabaseHandler

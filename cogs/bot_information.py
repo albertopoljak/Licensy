@@ -18,8 +18,6 @@ class BotInformation(commands.Cog):
         # Fetch developers only once, at start
         self.bot.loop.create_task(self.set_developers())
         self.process = psutil.Process(os.getpid())
-        self.support_server_invite = self.bot.config["support_channel_invite"]
-        self.patreon_link = "https://www.patreon.com/Licensy"
         self.activity = 0
         self.activity_loop.start()
 
@@ -76,7 +74,7 @@ class BotInformation(commands.Cog):
         Shows invite to the support server.
 
         """
-        description = f"Join **[support server]({self.support_server_invite})** for questions, suggestions and support."
+        description = f"Join **[support server]({self.bot.config['support_channel_invite']})** for questions, suggestions and support."
         await ctx.send(embed=info(description, ctx.me, title="Ask away!"))
 
     @commands.command(aliases=["stats", "status", "server"])
@@ -117,8 +115,8 @@ class BotInformation(commands.Cog):
         io_write_bytes = f"{io_counters.write_bytes/1024/1024:.3f}MB"
 
         footer = (f"[Invite]({self._get_bot_invite_link()})"
-                  f" | [Donate]({self.patreon_link})"
-                  f" | [Support]({self.support_server_invite})"
+                  f" | [Donate]({self.bot.config['patreon_link']})"
+                  f" | [Support]({self.bot.config['support_channel_invite']})"
                   f" | [Vote](https://discordbots.org/bot/604057722878689324)"
                   f" | [Website](https://github.com/albertopoljak/Licensy)")
 
@@ -162,7 +160,7 @@ class BotInformation(commands.Cog):
         Support development!
 
         """
-        await ctx.send(embed=info(self.patreon_link, ctx.me, title="Thank you :)"))
+        await ctx.send(embed=info(self.bot.config["patreon_link"], ctx.me, title="Thank you :)"))
 
     async def set_developers(self):
         """
