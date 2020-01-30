@@ -244,7 +244,11 @@ class DatabaseHandler:
         query = "SELECT GUILD_ID, LICENSED_ROLE_ID FROM GUILD_LICENSES WHERE LICENSE=?"
         async with self.connection.execute(query, (license,)) as cursor:
             row = await cursor.fetchone()
-            return int(row[0]), int(row[1])
+            # TODO: Temporal quick fix. Refactor
+            if row is None:
+                return None
+            else:
+                return int(row[0]), int(row[1])
 
     async def get_license_duration_hours(self, license):
         """

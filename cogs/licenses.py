@@ -233,18 +233,25 @@ class LicenseHandler(commands.Cog):
 
         TODO: Better security (right now license is visible in plain sight in guild)
         """
-        license_guild_id, license_role_id = await self.bot.main_db.get_license_data(license)
+        license_data = await self.bot.main_db.get_license_data(license)
+        if license_data is None:
+            await ctx.send(embed=failure("The license key you entered is invalid/deactivated."))
+            return
+        license_guild_id, license_role_id = license_data
         await self.activate_license(ctx, license, license_guild_id, license_role_id, ctx.author)
 
     @commands.command(allieses=["add_license"])
     @commands.has_permissions(manage_roles=True)
-    @commands.guild_only()
     async def add_license(self, ctx, license, member: discord.Member):
         """
         Manually add license to member.
 
         """
-        license_guild_id, license_role_id = await self.bot.main_db.get_license_data(license)
+        license_data = await self.bot.main_db.get_license_data(license)
+        if license_data is None:
+            await ctx.send(embed=failure("The license key you entered is invalid/deactivated."))
+            return
+        license_guild_id, license_role_id = license_data
         await self.activate_license(ctx, license, license_guild_id, license_role_id, member)
         logger.info(f"{ctx.author} is adding license {license} to member {member} in guild {ctx.guild}")
 
@@ -259,6 +266,11 @@ class LicenseHandler(commands.Cog):
         guild = self.bot.get_guild(guild_id)
         if guild is None:
             await ctx.send(embed=failure("Guild tied to that license not found in bot guilds."))
+            return
+
+        if ctx.guild is not None and ctx.guild.id != guild_id:
+            await ctx.send(embed=failure(f"That license is not for this guild! "
+                                         f"Either redeem it in correct guild '{guild.name}' or redeem in bot DM."))
             return
 
         # Decorator won't work in DM so have to manually check
@@ -309,14 +321,18 @@ class LicenseHandler(commands.Cog):
                             "\nThis probably means that they were manually assigned this role without using the bot license system."
                             "\nHave someone remove the role from them and call this command again.")
                     await ctx.send(embed=failure(msg))
-                    await ctx.message.delete()
+                    if ctx.guild is not None:
+                        # delete message but only if in guild, can't delete dm messages
+                        await ctx.message.delete()
                     return
 
                 remaining_time = get_remaining_time(expiration_date)
-                msg = (f"{member.mention} already has an active subscription for the {role.mention} role!"
+                msg = (f"{member.mention} already has an active subscription for the '{role.name}' role!"
                        f"\nIt's valid for another {remaining_time}")
                 await ctx.send(embed=warning(msg))
-                await ctx.message.delete()
+                if ctx.guild is not None:
+                    # delete message but only if in guild, can't delete dm messages
+                    await ctx.message.delete()
                 return
             # We add the role to the member, we do this before adding/removing stuff from db
             # just in case the bot doesn't have perms and throws exception (we already
