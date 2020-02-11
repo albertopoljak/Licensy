@@ -164,7 +164,7 @@ Further steps on how to use the bot are in [Quickstart bot usage](#quickstart-bo
 ## License
 
 This project is licensed under the GNU AGPLv3 License - see the [LICENSE.md](LICENSE.md) file for details
-, for plain english you can check out [tldrlegal](https://tldrlegal.com/license/gnu-affero-general-public-license-v3-(agpl-3.0).
+, for plain english you can check out [tldrlegal](https://tldrlegal.com/license/gnu-affero-general-public-license-v3-(agpl-3.0)).
 
 If you fork/download the code and run your own bot instance **WITHOUT** changing the code then you don't have to worry
 regarding the license as all is already implemented in the bot functionality (commands that link to this readme, state
