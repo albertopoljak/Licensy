@@ -8,6 +8,20 @@ logger = logging.getLogger(__name__)
 
 
 class PrettyHelpCommand(commands.MinimalHelpCommand):
+    """
+    Custom help command.
+    See MinimalHelpCommand and it's parents for more info on overwritten methods.
+
+    Sends the help as embed with color of the bot top color (works in DM too).
+    Each command name/explanation is in one line, each marked as `code-line` and it's formatted in a way that
+    names are left aligned and descriptions are also left aligned but moved for N spaces from names so that all
+    descriptions start on the visually same line.
+
+    Calling it in guild will hide the commands that you have no access too.
+    Calling it in DMs will show you all commands.
+    Hidden commands are always hidden.
+    """
+
     def get_ending_note(self):
         command_name = self.invoked_with
         return "Type {0}{1} <command> for more info on a command.\n".format(self.clean_prefix, command_name)
@@ -15,9 +29,7 @@ class PrettyHelpCommand(commands.MinimalHelpCommand):
     def get_opening_note(self):
         prefix = "If you like the bot please consider donating or starring the Github repository, ty :)"
 
-        if self.context.guild is None:
-            return prefix + "\n\nCalling help in DM will always show only basic commands:"
-        elif self.context.author.guild_permissions.administrator:
+        if self.context.guild is None or self.context.author.guild_permissions.administrator:
             return prefix
         else:
             return prefix + "\nCommands that you have no permission for are **hidden**:"
@@ -36,6 +48,17 @@ class PrettyHelpCommand(commands.MinimalHelpCommand):
         for page in self.paginator.pages:
             embed = discord.Embed(title=empty, description=page, color=get_top_role_color(self.context.me))
             await destination.send(embed=embed)
+
+    async def send_bot_help(self, mapping):
+        ctx = self.context
+        # I want to verify_checks if it's called in guild but don't want it in DMs
+        if ctx.guild is None:
+            # Temporally disable verify checks then enable them again (alternative would be a lot of DRY breaking).
+            self.verify_checks = False
+            await super().send_bot_help(mapping)
+            self.verify_checks = True
+        else:
+            await super().send_bot_help(mapping)
 
 
 class Help(commands.Cog):
