@@ -16,10 +16,13 @@ class BotInformation(commands.Cog):
         self.bot = bot
         self.developers = []
         # Fetch developers only once, at start
-        self.bot.loop.create_task(self.set_developers())
+        self.bot.loop.create_task(self._set_developers())
         self.process = psutil.Process(os.getpid())
         self.activity = 0
         self.activity_loop.start()
+        self.patreon_link = "https://www.patreon.com/Licensy"
+        self.github_source = "https://github.com/albertopoljak/Licensy"
+        self.top_gg_vote_link = "https://discordbots.org/bot/604057722878689324"
 
     @tasks.loop(seconds=300.0)
     async def activity_loop(self):
@@ -76,13 +79,20 @@ class BotInformation(commands.Cog):
         description = f"Use this **[invite link]({invite_link})** to invite me."
         await ctx.send(embed=info(description, ctx.me, title="Invite me :)"))
 
+    @commands.command()
+    async def donate(self, ctx):
+        """
+        Support development!
+        """
+        await ctx.send(embed=info(self.patreon_link, ctx.me, title="Thank you :)"))
+
     def _get_bot_invite_link(self):
         perms = discord.Permissions()
         perms.update(manage_roles=True, read_messages=True, send_messages=True, manage_messages=True)
         return discord.utils.oauth_url(self.bot.user.id, permissions=perms)
 
     @commands.command()
-    async def support(self, ctx):
+    async def support_server(self, ctx):
         """
         Shows invite to the support server.
 
@@ -90,6 +100,27 @@ class BotInformation(commands.Cog):
         description = (f"Join **[support server]({self.bot.config['support_channel_invite']})** "
                        f"for questions, suggestions and support.")
         await ctx.send(embed=info(description, ctx.me, title="Ask away!"))
+
+    @commands.command()
+    async def vote(self, ctx):
+        """
+        Vote bot on top.gg (bot list).
+        """
+        await ctx.send(embed=info(self.top_gg_vote_link, ctx.me, title="Thank you."))
+
+    @commands.command(aliases=["git", "github"])
+    async def source(self, ctx):
+        """
+        Link to source code on Github.
+        """
+        await ctx.send(embed=info(self.github_source, ctx.me, title="Source code"))
+
+    @commands.command()
+    async def uptime(self, ctx):
+        """
+        Time since boot.
+        """
+        await ctx.send(embed=info(self.last_boot(), ctx.me, title="Booted:"))
 
     @commands.command(aliases=["stats", "status", "server"])
     @commands.cooldown(1, 10, commands.BucketType.guild)
@@ -129,10 +160,10 @@ class BotInformation(commands.Cog):
         io_write_bytes = f"{io_counters.write_bytes/1024/1024:.3f}MB"
 
         footer = (f"[Invite]({self._get_bot_invite_link()})"
-                  f" | [Donate]({self.bot.config['patreon_link']})"
-                  f" | [Support]({self.bot.config['support_channel_invite']})"
-                  f" | [Vote](https://discordbots.org/bot/604057722878689324)"
-                  f" | [Website](https://github.com/albertopoljak/Licensy)")
+                  f" | [Donate]({self.patreon_link})"
+                  f" | [Support server]({self.bot.config['support_channel_invite']})"
+                  f" | [Vote]({self.top_gg_vote_link})"
+                  f" | [Github]({self.github_source})")
 
         # The weird numbers is just guessing number of spaces so the lines align
         # Needed since embeds are not monospaced font
@@ -160,23 +191,7 @@ class BotInformation(commands.Cog):
         embed = construct_embed(ctx.me, **fields)
         await ctx.send(embed=embed)
 
-    @commands.command()
-    async def uptime(self, ctx):
-        """
-        Time since boot.
-
-        """
-        await ctx.send(embed=info(self.last_boot(), ctx.me, title="Booted:"))
-
-    @commands.command()
-    async def donate(self, ctx):
-        """
-        Support development!
-
-        """
-        await ctx.send(embed=info(self.bot.config["patreon_link"], ctx.me, title="Thank you :)"))
-
-    async def set_developers(self):
+    async def _set_developers(self):
         """
         Sets self.developers as a list of user mentions.
         Users represent developers loaded from config.
@@ -191,7 +206,7 @@ class BotInformation(commands.Cog):
             developer = await self.bot.fetch_user(value_id)
             developers.append(developer.mention)
         if not developers:
-            logger.critical("Developers ({developer_ids}) could not be found on discord!")
+            logger.critical(f"Developers ({developer_ids}) could not be found on discord!")
             self.developers = ["Unknown"]
         else:
             self.developers = developers

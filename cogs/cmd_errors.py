@@ -5,7 +5,7 @@ from asyncio import TimeoutError
 from discord.ext import commands
 from discord.errors import Forbidden
 from helpers.errors import RoleNotFound, DefaultGuildRoleNotSet, DatabaseMissingData
-from helpers.embed_handler import failure, log_embed, traceback_embed
+from helpers.embed_handler import failure
 
 logger = logging.getLogger(__name__)
 
@@ -34,9 +34,8 @@ class CmdErrors(commands.Cog):
             """
             Note that this is only for checks of the command , specifically for bot_has_permissions 
             example @commands.bot_has_permissions(administrator=True)
-            It will not work for example if in command role.edit is called but bot doesn't have manage role permission.
+            It will not work for example if in code role.edit is called but bot doesn't have manage role permission.
             In that case a simple "Forbidden" will be raised.
-            
             """
             missing = [perm.replace("_", " ").replace("guild", "server").title() for perm in error.missing_perms]
             if len(missing) > 2:
@@ -62,7 +61,6 @@ class CmdErrors(commands.Cog):
             """
             Note that this is only for checks of the command , example @commands.has_permissions(administrator=True)
             MissingPermissions is raised if check for permissions of the member who invoked the command has failed.
-            
             """
             # Developers can bypass guild permissions
             if not await self.developer_bypass(ctx):
@@ -141,21 +139,13 @@ class CmdErrors(commands.Cog):
 
     async def log_traceback(self, ctx, error):
         error_type = type(error)
-        exception_message = f"Ignoring {error_type} exception in command '{ctx.command}':{error}"
         traceback_message = traceback.format_exception(etype=error_type, value=error, tb=error.__traceback__)
-        logger.critical(f"{exception_message}")
-        logger.critical(traceback_message)
-        if self.bot.is_ready():
-            log_channel = self.bot.get_channel(self.bot.config["developer_log_channel_id"])
-            embed = log_embed(exception_message, ctx=ctx, title="Command error!")
-            trace_embed = traceback_embed(traceback_message)
-            if log_channel is not None:
-                await log_channel.send(embed=embed)
-                await log_channel.send(embed=trace_embed)
+        log_message = f"Ignoring {error_type} exception in command '{ctx.command}':{error}\n{traceback_message}"
+        await self.bot.send_to_log_channel(log_message, title="Command error!", ctx=ctx)
 
     async def developer_bypass(self, ctx):
         """
-        Developers can bypass guild permissions/ cooldowns etc.
+        Developers can bypass guild permissions/cooldowns etc.
         Re-invokes the command.
         :param ctx: ctx to re-invoke the command from (if the author is bot developer)
         :return: Bool if developer or not.

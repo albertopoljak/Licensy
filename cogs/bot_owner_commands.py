@@ -18,6 +18,41 @@ class BotOwnerCommands(commands.Cog):
 
     @commands.command(hidden=True)
     @commands.is_owner()
+    async def load(self, ctx, extension_path):
+        """
+        Loads an extension.
+        :param extension_path: full path, dotted access.
+        """
+        self.bot.load_extension(extension_path)
+        await ctx.send(embed=success(f"{extension_path} loaded.", ctx.me))
+
+    @commands.command(hidden=True)
+    @commands.is_owner()
+    async def unload(self, ctx, extension_path):
+        """
+        Unloads an extension.
+        :param extension_path: full path, dotted access
+        """
+
+        self.bot.unload_extension(extension_path)
+        await ctx.send(embed=success(f"{extension_path} unloaded.", ctx.me))
+
+    @commands.command(hidden=True)
+    @commands.is_owner()
+    async def disconnect(self, ctx):
+        """
+        Closes database connection and disconnects the bot.
+
+        Used for gracefully shutting it down in need of update.
+        """
+        await self.bot.main_db.connection.commit()
+        await self.bot.main_db.connection.close()
+        logger.info("Database closed.")
+        await self.bot.logout()
+        logger.info("Disconnected.")
+
+    @commands.command(hidden=True)
+    @commands.is_owner()
     async def update(self, ctx):
         count_minutes = 15
         for i in range(count_minutes, 0, -1):

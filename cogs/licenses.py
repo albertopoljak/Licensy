@@ -582,7 +582,7 @@ class LicenseHandler(commands.Cog):
 
         all_active = await self.bot.main_db.get_member_data(ctx.guild.id, member.id)
         if not all_active:
-            await ctx.send(embed=failure("Nothing to show."))
+            await ctx.send(embed=failure(f"Nothing to show for {member.mention}."))
             return
 
         for entry in all_active:

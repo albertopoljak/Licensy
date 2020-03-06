@@ -15,11 +15,11 @@ class DatabaseHandler:
     DB_EXTENSION = ".sqlite3"
 
     @classmethod
-    async def create(cls, db_name: str = "main"):
+    async def create_instance(cls, db_name: str = "main"):
         """"
         Can't use await in __init__ so we create a factory pattern.
         To correctly create this object you need to call :
-            await DatabaseHandler.create()
+            await DatabaseHandler.create_instance()
 
         """
         self = DatabaseHandler()

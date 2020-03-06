@@ -1,12 +1,12 @@
 from asyncio import TimeoutError
 
-MAX_MSG_SIZE = 2000
-ARROW_TO_BEGINNING = "\u23ee"
-ARROW_BACKWARD = "\u25c0"
-ARROW_FORWARD = "\u25b6"
-ARROW_TO_END = "\u23ed"
-PAGINATION_EMOJIS = (ARROW_TO_BEGINNING, ARROW_BACKWARD, ARROW_FORWARD, ARROW_TO_END)
-TIMEOUT = 120
+_MAX_MSG_SIZE = 2000
+_ARROW_TO_BEGINNING = "\u23ee"
+_ARROW_BACKWARD = "\u25c0"
+_ARROW_FORWARD = "\u25b6"
+_ARROW_TO_END = "\u23ed"
+_PAGINATION_EMOJIS = (_ARROW_TO_BEGINNING, _ARROW_BACKWARD, _ARROW_FORWARD, _ARROW_TO_END)
+_TIMEOUT = 120
 
 
 class Paginator:
@@ -46,7 +46,7 @@ class Paginator:
         self.output = output
         self.prefix = prefix
         self.suffix = suffix
-        self._max_msg_size = MAX_MSG_SIZE - len(prefix) - len(suffix) - len(title) - Paginator.page_counter_suffix_string_length()
+        self._max_msg_size = _MAX_MSG_SIZE - len(prefix) - len(suffix) - len(title) - Paginator.page_counter_suffix_string_length()
         self.chunk_index = 0
         self.chunks = Paginator.make_chunks(title, string, separator, self._max_msg_size)
         self.paginating = sum(map(len, self.chunks)) > self._max_msg_size
@@ -121,7 +121,7 @@ class Paginator:
             self.message = await self.output.send(f"{self.prefix}{self.chunks[0]}{self.suffix}")
 
     async def _add_reactions(self):
-        for emoji in PAGINATION_EMOJIS:
+        for emoji in _PAGINATION_EMOJIS:
             await self.message.add_reaction(emoji)
 
     async def clear_reactions(self):
@@ -142,50 +142,49 @@ class Paginator:
             pass
 
     async def start_listener(self, bot, user, message):
-        # Note to self: Do not use self in checks as references will not always be removed
         def react_check(reaction_, user_):
-            return str(reaction_) in PAGINATION_EMOJIS and user_.id == user.id and reaction_.message.id == message.id
+            return str(reaction_) in _PAGINATION_EMOJIS and user_.id == user.id and reaction_.message.id == message.id
 
         while self.paginating:
             try:
-                reaction, user = await bot.wait_for("reaction_add", check=react_check, timeout=TIMEOUT)
+                reaction, user = await bot.wait_for("reaction_add", check=react_check, timeout=_TIMEOUT)
             except TimeoutError:
                 self.paginating = False
                 await self.clear_reactions()
                 break
 
-            if str(reaction) == ARROW_TO_BEGINNING:
+            if str(reaction) == _ARROW_TO_BEGINNING:
                 if self.chunk_index == 0:
-                    await self._remove_reaction(ARROW_TO_BEGINNING)
+                    await self._remove_reaction(_ARROW_TO_BEGINNING)
                     continue
                 else:
                     self.chunk_index = 0
                     await self.update_message()
-                    await self._remove_reaction(ARROW_TO_BEGINNING)
+                    await self._remove_reaction(_ARROW_TO_BEGINNING)
 
-            elif str(reaction) == ARROW_BACKWARD:
+            elif str(reaction) == _ARROW_BACKWARD:
                 if self.chunk_index == 0:
-                    await self._remove_reaction(ARROW_BACKWARD)
+                    await self._remove_reaction(_ARROW_BACKWARD)
                     continue
                 else:
                     self.chunk_index -= 1
                 await self.update_message()
-                await self._remove_reaction(ARROW_BACKWARD)
+                await self._remove_reaction(_ARROW_BACKWARD)
 
-            elif str(reaction) == ARROW_FORWARD:
+            elif str(reaction) == _ARROW_FORWARD:
                 if self.chunk_index == len(self.chunks) - 1:
-                    await self._remove_reaction(ARROW_FORWARD)
+                    await self._remove_reaction(_ARROW_FORWARD)
                     continue
                 else:
                     self.chunk_index += 1
                 await self.update_message()
-                await self._remove_reaction(ARROW_FORWARD)
+                await self._remove_reaction(_ARROW_FORWARD)
 
-            elif str(reaction) == ARROW_TO_END:
+            elif str(reaction) == _ARROW_TO_END:
                 if self.chunk_index == len(self.chunks) - 1:
-                    await self._remove_reaction(ARROW_TO_END)
+                    await self._remove_reaction(_ARROW_TO_END)
                     continue
                 else:
                     self.chunk_index = len(self.chunks) - 1
                 await self.update_message()
-                await self._remove_reaction(ARROW_TO_END)
+                await self._remove_reaction(_ARROW_TO_END)
