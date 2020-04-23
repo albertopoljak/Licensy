@@ -116,5 +116,5 @@ if __name__ == "__main__":
             traceback_msg = traceback.format_exception(etype=type(e), value=e, tb=e.__traceback__)
             root_logger.warning(traceback_msg)
 
-    bot.run(bot.config["NzAyODcxODcyNzEwMTE1NDgw.XqGlPA.QU_uDRi5HBxkm7Z4m1jQHLDSRqs"])
+    bot.run(bot.config["NzAyODcxODcyNzEwMTE1NDgw.XqG1EA.knvGQSUYeCyxKFPKWafcic68fw0"])
 
