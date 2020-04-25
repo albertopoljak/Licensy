@@ -117,8 +117,8 @@ class LicenseHandler(commands.Cog):
         else:
             await member.remove_roles(member_role)
             try:
-                expired = f"Your license in guild **{guild}** has expired for the following role: **{member_role}** "
-                await member.send(embed=simple_embed(expired, "Notification", discord.Colour.blue()))
+                expired = f"A sua licença **{member_role}** no servidor **{guild}** expirou, contate algum administrador para renovar e continuar tendo beneficios "
+                await member.send(embed=simple_embed(expired, "Notificação", discord.Colour.blue()))
             except Forbidden:
                 # Ignore if user has blocked DM
                 pass
