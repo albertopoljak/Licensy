@@ -65,7 +65,10 @@ class LicenseHandler(commands.Cog):
                                        "Removing all entries of it from database!")
                         await self.bot.main_db.remove_all_guild_data(member_guild_id, guild_table_too=True)
                         logger.info(f"Successfully deleted all database data for guild {member_guild_id}")
-                        return
+                        continue
+                    except Exception as e3:
+                        logger.warning(f"Can't remove role {licensed_role_id } from member {member_id } guild {member_guild_id }, ignoring error: {e3}")
+                        continue
                     await self.bot.main_db.delete_licensed_member(member_id, licensed_role_id)
                     logger.info(f"Role {licensed_role_id} successfully removed from member:{member_id}")
 
