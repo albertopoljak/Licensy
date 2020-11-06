@@ -1,8 +1,10 @@
 import os
 import logging
 from pathlib import Path
-from discord import Embed, Colour
+
 import timeago as timesince
+from discord import Embed, Colour
+
 
 logger = logging.getLogger(__name__)
 
@@ -24,9 +26,9 @@ def construct_load_bar_string(percent, message=None, size=None):
     progress = int(round(percent / size))
 
     constructed += limiters
-    for x in range(0, progress):
+    for _ in range(0, progress):
         constructed += element_full
-    for x in range(progress, size):
+    for _ in range(progress, size):
         constructed += element_emtpy
     constructed += limiters
     if message is None:
@@ -40,7 +42,6 @@ def get_top_role_color(member):
     """
     Tries to get member top role color and if fails return Embed.Empty - This makes it work in DMs.
     If the top role has default role color then returns green color (marking success)
-
     """
     try:
         color = member.top_role.color
@@ -85,9 +86,7 @@ def tail(n=1):
     """
     Tail a file and get X lines from the end
     Source(modified to work): https://stackoverflow.com/a/57277212/11311072
-
     """
-
     with open("logs/log.txt", "r", errors="backslashreplace") as f:
         assert n >= 0
         pos, lines = n + 1, []

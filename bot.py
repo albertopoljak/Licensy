@@ -1,14 +1,17 @@
-import traceback
+import sys
 import logging
 import asyncio
-import sys
+import traceback
+
 import discord
 from discord.ext import commands
-from database_handler import DatabaseHandler
+
+from helpers.misc import maximize_size
 from config_handler import ConfigHandler
+from database_handler import DatabaseHandler
 from helpers import logger_handlers, embed_handler
 from helpers.licence_helper import get_current_time
-from helpers.misc import maximize_size
+
 
 root_logger = logging.getLogger()
 root_logger.setLevel(logging.INFO)
@@ -17,13 +20,15 @@ root_logger.addHandler(logger_handlers.get_file_handler())
 logger = logging.getLogger("discord")
 logger.setLevel(logging.WARNING)
 
-startup_extensions = ["licenses",
-                      "bot_owner_commands",
-                      "guild",
-                      "bot_information",
-                      "help",
-                      "top_gg_api",
-                      "cmd_errors"]
+startup_extensions = [
+    "licenses",
+    "bot_owner_commands",
+    "guild",
+    "bot_information",
+    "help",
+    "top_gg_api",
+    "cmd_errors"
+]
 
 
 class Bot(commands.Bot):
@@ -31,10 +36,12 @@ class Bot(commands.Bot):
         self.config = ConfigHandler("config")
         self.main_db = asyncio.get_event_loop().run_until_complete(DatabaseHandler.create_instance())
         self.up_time_start_time = get_current_time()
-        super(Bot, self).__init__(command_prefix=self.prefix_callable,
-                                  help_command=None,
-                                  description=self.config["bot_description"],
-                                  case_insensitive=True, **kwargs)
+        super(Bot, self).__init__(
+            command_prefix=self.prefix_callable,
+            help_command=None,
+            description=self.config["bot_description"],
+            case_insensitive=True, **kwargs
+        )
 
     async def prefix_callable(self, bot_client, message):
         try:
@@ -54,8 +61,10 @@ class Bot(commands.Bot):
             return default_prefix
 
     async def on_ready(self):
-        root_logger.info(f"Logged in as: {self.user.name} - {self.user.id}"
-                         f"\tDiscordPy version: {discord.__version__}")
+        root_logger.info(
+            f"Logged in as: {self.user.name} - {self.user.id}"
+            f"\tDiscordPy version: {discord.__version__}"
+        )
         root_logger.info("Successfully logged in and booted...!")
 
     @staticmethod

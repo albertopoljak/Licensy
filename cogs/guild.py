@@ -1,9 +1,12 @@
 import logging
+
 import discord
-from aiosqlite import IntegrityError
 from discord.ext import commands
-from helpers.embed_handler import success, failure
+from aiosqlite import IntegrityError
+
 from helpers.converters import license_duration
+from helpers.embed_handler import success, failure
+
 
 logger = logging.getLogger(__name__)
 
@@ -37,7 +40,6 @@ class Guild(commands.Cog):
         """
         Changes guild prefix.
         Maximum prefix size is 5 characters.
-
         """
         if ctx.prefix == prefix:
             await ctx.send(embed=failure(f"Already using prefix **{prefix}**"))
@@ -60,7 +62,6 @@ class Guild(commands.Cog):
 
         When creating new license, and role is not passed, this is the default role the license will use.
         Role tied to license is the role that the member will get when he redeems it.
-
         """
         # Check if the role is manageable by bot
         if not ctx.me.top_role > role:
@@ -101,10 +102,7 @@ class Guild(commands.Cog):
     @commands.command()
     @commands.guild_only()
     async def guild_info(self, ctx):
-        """
-        Shows database data for the guild.
-
-        """
+        """Shows database data for the guild."""
         prefix, role_id, expiration = await self.bot.main_db.get_guild_info(ctx.guild.id)
         stored_license_count = await self.bot.main_db.get_guild_license_total_count(ctx.guild.id)
         active_license_count = await self.bot.main_db.get_guild_licensed_roles_total_count(ctx.guild.id)
@@ -120,9 +118,11 @@ class Guild(commands.Cog):
             if default_license_role is None:
                 default_license_role = role_id
                 log = f"Can't find default license role {role_id} from guild {ctx.guild.name},{ctx.guild.id}"
-                msg = (f"Can't find default role {role_id} in this guild!\n"
-                       f"It's saved in the database but it looks like it was deleted from the guild.\n"
-                       f"Please update it.")
+                msg = (
+                    f"Can't find default role {role_id} in this guild!\n"
+                    f"It's saved in the database but it looks like it was deleted from the guild.\n"
+                    f"Please update it."
+                )
                 logger.critical(log)
                 await ctx.send(embed=failure(msg))
             else:
@@ -130,12 +130,14 @@ class Guild(commands.Cog):
         else:
             default_license_role = "**Not set!**"
 
-        msg = (f"Database guild info:\n"
-               f"Prefix: **{prefix}**\n"
-               f"Default license role: {default_license_role}\n"
-               f"Default license expiration time: **{expiration}h**\n\n"
-               f"Stored licenses: **{stored_license_count}**\n"
-               f"Active role subscriptions: **{active_license_count}**")
+        msg = (
+            f"Database guild info:\n"
+            f"Prefix: **{prefix}**\n"
+            f"Default license role: {default_license_role}\n"
+            f"Default license expiration time: **{expiration}h**\n\n"
+            f"Stored licenses: **{stored_license_count}**\n"
+            f"Active role subscriptions: **{active_license_count}**"
+        )
 
         await ctx.send(embed=success(msg, ctx.me))
 

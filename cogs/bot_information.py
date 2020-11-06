@@ -2,11 +2,14 @@ import os
 import time
 import psutil
 import logging
+
 import discord
 from discord.ext import commands, tasks
-from helpers.misc import construct_load_bar_string, construct_embed, time_ago, embed_space
-from helpers.licence_helper import get_current_time
+
 from helpers.embed_handler import info
+from helpers.licence_helper import get_current_time
+from helpers.misc import construct_load_bar_string, construct_embed, time_ago, embed_space
+
 
 logger = logging.getLogger(__name__)
 
@@ -20,7 +23,6 @@ class BotInformation(commands.Cog):
         self.process = psutil.Process(os.getpid())
         self.activity = 0
         self.activity_loop.start()
-        self.patreon_link = "https://www.patreon.com/Licensy"
         self.github_source = "https://github.com/albertopoljak/Licensy"
         self.top_gg_vote_link = "https://discordbots.org/bot/604057722878689324"
 
@@ -60,31 +62,22 @@ class BotInformation(commands.Cog):
 
         First value is REST API latency.
         Second value is Discord Gateway latency.
-
         """
         before = time.monotonic()
         message = await ctx.send(embed=info("Pong", ctx.me))
         ping = (time.monotonic() - before) * 1000
-        content = (f":ping_pong:   |   {int(ping)}ms\n"
-                   f":timer:   |   {self.bot.latency * 1000:.0f}ms")
+        content = (
+            f":ping_pong:   |   {int(ping)}ms\n"
+            f":timer:   |   {self.bot.latency * 1000:.0f}ms"
+        )
         await message.edit(embed=info(content, ctx.me, title="Results:"))
 
     @commands.command()
     async def invite(self, ctx):
-        """
-        Shows bot invite link.
-
-        """
+        """Shows bot invite link."""
         invite_link = self._get_bot_invite_link()
         description = f"Use this **[invite link]({invite_link})** to invite me."
         await ctx.send(embed=info(description, ctx.me, title="Invite me :)"))
-
-    @commands.command()
-    async def donate(self, ctx):
-        """
-        Support development!
-        """
-        await ctx.send(embed=info(self.patreon_link, ctx.me, title="Thank you :)"))
 
     def _get_bot_invite_link(self):
         perms = discord.Permissions()
@@ -93,42 +86,53 @@ class BotInformation(commands.Cog):
 
     @commands.command()
     async def support_server(self, ctx):
-        """
-        Shows invite to the support server.
-
-        """
-        description = (f"Join **[support server]({self.bot.config['support_channel_invite']})** "
-                       f"for questions, suggestions and support.")
+        """Shows invite to the support server."""
+        description = (
+            f"Join **[support server]({self.bot.config['support_channel_invite']})** "
+            f"for questions, suggestions and support."
+        )
         await ctx.send(embed=info(description, ctx.me, title="Ask away!"))
 
     @commands.command()
-    async def vote(self, ctx):
-        """
-        Vote bot on top.gg (bot list).
-        """
-        await ctx.send(embed=info(self.top_gg_vote_link, ctx.me, title="Thank you."))
+    async def uptime(self, ctx):
+        """Time since boot."""
+        await ctx.send(embed=info(self.last_boot(), ctx.me, title="Booted:"))
 
-    @commands.command(aliases=["git", "github"])
-    async def source(self, ctx):
-        """
-        Link to source code on Github.
-        """
-        await ctx.send(embed=info(self.github_source, ctx.me, title="Source code"))
+    @commands.command(aliases=["hierarchy"])
+    @commands.guild_only()
+    async def role_hierarchy(self, ctx):
+        """Shows role hierarchy in guild and highlights top role which bot can currently manage."""
+        roles = []
+        for role in reversed(ctx.guild.roles):
+            if role == ctx.me.top_role:
+                roles.append(f"{role.name} : {role.id} (mine top role)")
+            else:
+                roles.append(f"{role.name} : {role.id}")
+
+        await ctx.send(embed=info("\n".join(roles), None))
 
     @commands.command()
-    async def uptime(self, ctx):
-        """
-        Time since boot.
-        """
-        await ctx.send(embed=info(self.last_boot(), ctx.me, title="Booted:"))
+    @commands.guild_only()
+    async def can_manage(self, ctx, role: discord.Role):
+        if ctx.me.top_role > role:
+            await ctx.send(embed=success("I can manage that role.", None))
+        else:
+            await ctx.send(embed=failure("No I cannot manage that role."))
+
+    @commands.command()
+    async def vote(self, ctx):
+        """Vote bot on top.gg (bot list)."""
+        await ctx.send(embed=info(self.top_gg_vote_link, ctx.me, title="Thank you."))
+
+    @commands.command(aliases=["git", "github", "source"])
+    async def source_code(self, ctx):
+        """Link to source code on Github."""
+        await ctx.send(embed=info(self.github_source, ctx.me, title="Source code"))
 
     @commands.command(aliases=["stats", "status", "server"])
     @commands.cooldown(1, 10, commands.BucketType.guild)
     async def about(self, ctx):
-        """
-        Show bot information (stats/links/etc).
-
-        """
+        """Show bot information (stats/links/etc)."""
         avg_members = round(len(self.bot.users) / len(self.bot.guilds))
         avg_members_string = f"{avg_members} users/server"
 
@@ -159,34 +163,36 @@ class BotInformation(commands.Cog):
         io_read_bytes = f"{io_counters.read_bytes/1024/1024:.3f}MB"
         io_write_bytes = f"{io_counters.write_bytes/1024/1024:.3f}MB"
 
-        footer = (f"[Invite]({self._get_bot_invite_link()})"
-                  f" | [Donate]({self.patreon_link})"
-                  f" | [Support server]({self.bot.config['support_channel_invite']})"
-                  f" | [Vote]({self.top_gg_vote_link})"
-                  f" | [Github]({self.github_source})")
+        footer = (
+            f"[Invite]({self._get_bot_invite_link()})"
+            f" | [Support server]({self.bot.config['support_channel_invite']})"
+            f" | [Vote]({self.top_gg_vote_link})"
+            f" | [Github]({self.github_source})")
 
         # The weird numbers is just guessing number of spaces so the lines align
         # Needed since embeds are not monospaced font
-        field_content = (f"**Bot RAM usage:**{embed_space*7}{bot_ram_usage_field}\n"
-                         f"**Server RAM usage:**{embed_space}{server_ram_usage_field}\n"
-                         f"**Bot CPU usage:**{embed_space*9}{bot_cpu_usage_field}\n"
-                         f"**Server CPU usage:**{embed_space*3}{server_cpu_usage_field}\n"
-                         f"**IO (r/w):** {io_read_bytes} / {io_write_bytes}\n"
-                         f"\n**Links:\n**" + footer)
+        field_content = (
+                f"**Bot RAM usage:**{embed_space*7}{bot_ram_usage_field}\n"
+                f"**Server RAM usage:**{embed_space}{server_ram_usage_field}\n"
+                f"**Bot CPU usage:**{embed_space*9}{bot_cpu_usage_field}\n"
+                f"**Server CPU usage:**{embed_space*3}{server_cpu_usage_field}\n"
+                f"**IO (r/w):** {io_read_bytes} / {io_write_bytes}\n"
+                f"\n**Links:\n**" + footer)
 
         # If called immediately after startup it will fail since developers are not yet loaded
         developers = self.developers if self.developers else ["loading.."]
-        fields = {"Last boot": self.last_boot(),
-                  "Developers": "\n".join(developers),
-                  "Library": "discord.py",
-                  "Servers": len(self.bot.guilds),
-                  "Average users:": avg_members_string,
-                  "Total users": len(self.bot.users),
-                  "Commands": len(self.bot.commands),
-                  "Active licenses:": active_licenses,
-                  "Stored licenses:": stored_licenses,
-                  "Server info": field_content,
-                  }
+        fields = {
+            "Last boot": self.last_boot(),
+            "Developers": "\n".join(developers),
+            "Library": "discord.py",
+            "Servers": len(self.bot.guilds),
+            "Average users:": avg_members_string,
+            "Total users": len(self.bot.users),
+            "Commands": len(self.bot.commands),
+            "Active licenses:": active_licenses,
+            "Stored licenses:": stored_licenses,
+            "Server info": field_content,
+        }
 
         embed = construct_embed(ctx.me, **fields)
         await ctx.send(embed=embed)
@@ -195,7 +201,6 @@ class BotInformation(commands.Cog):
         """
         Sets self.developers as a list of user mentions.
         Users represent developers loaded from config.
-
         """
         # Absolutely needed, otherwise we will try to fetch_user
         # before the bot is connected to discord thus getting an exception
@@ -212,10 +217,7 @@ class BotInformation(commands.Cog):
             self.developers = developers
 
     def last_boot(self) -> str:
-        """
-        :return: str last boot time
-
-        """
+        """Returns humanized last boot time."""
         return time_ago(get_current_time() - self.bot.up_time_start_time)
 
 

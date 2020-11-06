@@ -1,8 +1,11 @@
 import logging
+
 import discord
 from discord.ext import commands
+
 from helpers.embed_handler import info
 from helpers.misc import embed_space, get_top_role_color
+
 
 logger = logging.getLogger(__name__)
 
@@ -66,31 +69,27 @@ class Help(commands.Cog):
         self._original_help_command = bot.help_command
         bot.help_command = PrettyHelpCommand()
         bot.help_command.cog = self
+        self.github_faq = "https://github.com/albertopoljak/Licensy/wiki/FAQ"
         self.github_permissions_link = "https://github.com/albertopoljak/Licensy#permissions-needed"
         self.github_bot_quick_start = "https://github.com/albertopoljak/Licensy#quickstart-bot-usage"
-        self.github_faq = "https://github.com/albertopoljak/Licensy/wiki/FAQ"
 
     def cog_unload(self):
-        """
-        Revert to default help command in case cog is unloaded
-        """
+        """Revert to default help command in case cog is unloaded."""
         self.bot.help_command = self._original_help_command
 
     @commands.command()
     async def faq(self, ctx):
-        """
-        Show common Q/A about bot and its usage.
-        """
-        bot_faq = (f"You can find it on [Github.]({self.github_faq})\n\n"
-                   f"Please let me know which features/improvements you want so I can focus on those.\n"
-                   f"Type `{ctx.prefix}support` for invite to support server.")
+        """Show common Q/A about bot and its usage."""
+        bot_faq = (
+            f"You can find it on [Github.]({self.github_faq})\n\n"
+            "Please let me know which features/improvements you want so I can focus on those.\n"
+            f"Type `{ctx.prefix}support` for invite to support server."
+        )
         await ctx.send(embed=info(bot_faq, ctx.me, title="FAQ"))
 
     @commands.command()
     async def quickstart(self, ctx):
-        """
-        Shortly explains first time bot usage.
-        """
+        """Shortly explains first time bot usage."""
         description = f"See Github [quickstart link]({self.github_bot_quick_start})."
         await ctx.send(embed=info(description, ctx.me, title="Quickstart :)"))
 

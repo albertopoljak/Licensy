@@ -1,17 +1,19 @@
 import logging
 from datetime import datetime
-from dateutil import parser
+
 import texttable
-from discord.ext import commands, tasks
-from discord.errors import Forbidden
 import discord.utils
+from dateutil import parser
 from aiosqlite import IntegrityError
+from discord.errors import Forbidden
+from discord.ext import commands, tasks
+
 from helpers import misc
+from helpers.paginator import Paginator
 from helpers.converters import positive_integer, license_duration
 from helpers.errors import RoleNotFound, DatabaseMissingData, GuildNotFound
-from helpers.licence_helper import construct_expiration_date, get_remaining_time, get_current_time
 from helpers.embed_handler import success, warning, failure, info, simple_embed
-from helpers.paginator import Paginator
+from helpers.licence_helper import construct_expiration_date, get_remaining_time, get_current_time
 
 logger = logging.getLogger(__name__)
 
@@ -40,7 +42,6 @@ class LicenseHandler(commands.Cog):
         the role from member and send some message.
 
         TODO: Move query to database handler
-
         """
         async with self.bot.main_db.connection.execute("SELECT * FROM LICENSED_MEMBERS") as cursor:
             async for row in cursor:
@@ -79,7 +80,6 @@ class LicenseHandler(commands.Cog):
         If it is in past then license is considered expired.
         :param expiration_date: datetime object
         :return: True if license is expired, False otherwise
-
         """
         if expiration_date < get_current_time():
             # Expired
@@ -98,7 +98,6 @@ class LicenseHandler(commands.Cog):
         :raise RoleNotFound: if roles to be removed isn't in member roles (case when in db it's saved but someone
                 manually removed their role so when db role expires and needs to be removed there is nothing to be
                 removed)
-
         """
         guild = self.bot.get_guild(guild_id)
         if guild is None:
@@ -246,10 +245,7 @@ class LicenseHandler(commands.Cog):
     @commands.command(allieses=["add_license"])
     @commands.has_permissions(manage_roles=True)
     async def add_license(self, ctx, license, member: discord.Member):
-        """
-        Manually add license to member.
-
-        """
+        """Manually add license to member."""
         license_data = await self.bot.main_db.get_license_data(license)
         if license_data is None:
             await ctx.send(embed=failure("The license key you entered is invalid/deactivated."))
@@ -608,10 +604,7 @@ class LicenseHandler(commands.Cog):
     @commands.has_permissions(administrator=True)
     @commands.guild_only()
     async def delete_license(self, ctx, license):
-        """
-        Deletes specified stored license.
-
-        """
+        """Deletes specified stored license."""
         if await self.bot.main_db.is_valid_license(license, ctx.guild.id):
             await self.bot.main_db.delete_license(license)
             await ctx.send(embed=success("License deleted.", ctx.me))
@@ -628,7 +621,6 @@ class LicenseHandler(commands.Cog):
 
         You will have to reply with "yes" for confirmation.
         """
-
         def check(msg):
             return msg.author == ctx.author and msg.channel == ctx.channel and msg.content == "yes"
 
@@ -646,7 +638,6 @@ class LicenseHandler(commands.Cog):
         :param missing_role_id: role that is in db but is missing in guild
 
         TODO: on startup/reconnect check if default role from db is valid
-
         """
         msg = (f"Trying to use role with ID {missing_role_id} that was set "
                f"as default role for guild {ctx.guild.name} but cannot find it "

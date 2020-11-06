@@ -1,11 +1,13 @@
 import logging
 import aiosqlite
-from typing import Tuple, List
 from pathlib import Path
 from datetime import datetime
+from typing import Tuple, List
+
 from helpers import misc
 from helpers import licence_helper
 from helpers.errors import DefaultGuildRoleNotSet, DatabaseMissingData
+
 
 logger = logging.getLogger(__name__)
 

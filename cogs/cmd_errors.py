@@ -2,10 +2,13 @@ import math
 import logging
 import traceback
 from asyncio import TimeoutError
+
 from discord.ext import commands
 from discord.errors import Forbidden
-from helpers.errors import RoleNotFound, DefaultGuildRoleNotSet, DatabaseMissingData
+
 from helpers.embed_handler import failure
+from helpers.errors import RoleNotFound, DefaultGuildRoleNotSet, DatabaseMissingData
+
 
 logger = logging.getLogger(__name__)
 

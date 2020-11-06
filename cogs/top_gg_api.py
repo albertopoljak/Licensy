@@ -1,6 +1,8 @@
 import logging
+
 import dbl
 from discord.ext import commands, tasks
+
 
 logger = logging.getLogger(__name__)
 

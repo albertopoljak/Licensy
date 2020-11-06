@@ -5,7 +5,7 @@ from datetime import datetime, timedelta
 
 def generate_multiple(amount: int) -> list:
     licenses = []
-    for i in range(amount):
+    for _ in range(amount):
         licenses.append(generate_single())
     return licenses
 
@@ -50,6 +50,3 @@ def get_current_time() -> datetime:
     possibly never expire!)
     """
     return datetime.now()
-
-
-get_current_time()
