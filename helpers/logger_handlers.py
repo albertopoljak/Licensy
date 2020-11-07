@@ -1,5 +1,6 @@
 import logging
 from sys import stdout
+from logging.handlers import TimedRotatingFileHandler
 
 from helpers import misc
 
@@ -17,7 +18,7 @@ def get_console_handler():
     return console_handler
 
 
-def get_file_handler() -> logging.handlers.TimedRotatingFileHandler:
+def get_file_handler() -> TimedRotatingFileHandler:
     """
     Returns file handler which outputs to file with log level of info
     File output is done in a way that logs are separated into 10 files where each file is valid for 1 day
