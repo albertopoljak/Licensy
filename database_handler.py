@@ -2,7 +2,7 @@ import logging
 import aiosqlite
 from pathlib import Path
 from datetime import datetime
-from typing import Tuple, List
+from typing import Tuple, List, Union
 
 from helpers import misc
 from helpers import licence_helper
@@ -236,7 +236,7 @@ class DatabaseHandler:
 
     # TABLE GUILD_LICENSES ###############################################################
 
-    async def get_license_data(self, license: str) -> Tuple[int, int]:
+    async def get_license_data(self, license: str) -> Union[Tuple[int, int], None]:
         """
         Returns licensed role id that the param license is linked to
         :param license: license the role is linked to

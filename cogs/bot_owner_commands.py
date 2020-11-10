@@ -39,7 +39,7 @@ class BotOwnerCommands(commands.Cog):
 
     @commands.command(hidden=True)
     @commands.is_owner()
-    async def disconnect(self, ctx):
+    async def disconnect(self, _ctx):
         """Closes database connection and disconnects the bot.
         Used for gracefully shutting it down in need of update.
         """
@@ -51,7 +51,7 @@ class BotOwnerCommands(commands.Cog):
 
     @commands.command(hidden=True)
     @commands.is_owner()
-    async def update(self, ctx):
+    async def update(self, _ctx):
         count_minutes = 15
         for i in range(count_minutes, 0, -1):
             await self.bot.change_presence(activity=discord.Game(name=f"Update in {i}"))
@@ -70,7 +70,7 @@ class BotOwnerCommands(commands.Cog):
 
     @commands.command(hidden=True)
     @commands.is_owner()
-    async def update_done(self, ctx):
+    async def update_done(self, _ctx):
         msg = (
             "```diff\n"
             "- -------------------------------------------------------------\n"
@@ -84,19 +84,19 @@ class BotOwnerCommands(commands.Cog):
 
     @commands.command(hidden=True)
     @commands.is_owner()
-    async def playing(self, ctx, *, game):
+    async def playing(self, _ctx, *, game):
         await self.bot.change_presence(activity=discord.Game(name=game))
         logger.info(f"Successfully set presence to **Playing {game}**.")
 
     @commands.command(hidden=True)
     @commands.is_owner()
-    async def listening(self, ctx, *, song):
+    async def listening(self, _ctx, *, song):
         await self.bot.change_presence(activity=discord.Activity(type=discord.ActivityType.listening, name=song))
         logger.info(f"Successfully set presence to **Listening to {song}**.")
 
     @commands.command(hidden=True)
     @commands.is_owner()
-    async def watching(self, ctx, *, movie):
+    async def watching(self, _ctx, *, movie):
         await self.bot.change_presence(activity=discord.Activity(type=discord.ActivityType.watching, name=movie))
         logger.info(f"Successfully set presence to **Watching {movie}**.")
 
@@ -111,7 +111,7 @@ class BotOwnerCommands(commands.Cog):
 
     @commands.command(hidden=True)
     @commands.is_owner()
-    async def show_log(self, ctx, lines: int =100):
+    async def show_log(self, ctx, lines: int = 100):
         """
         Shows last n lines from log.txt
 
