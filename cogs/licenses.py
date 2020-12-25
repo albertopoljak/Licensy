@@ -104,12 +104,7 @@ class LicenseHandler(commands.Cog):
             raise GuildNotFound(f"Fatal exception. "
                                 f"Guild **{guild_id}** loaded from database cannot be found in bot guilds!")
 
-        # Temporal fix for intents, waiting for Discord to approve them so the bot can cache members as usual
-        # member = guild.get_member(member_id)
-        try:
-            member = await guild.fetch_member(member_id)
-        except (Forbidden, discord.HTTPException):
-            member = None
+        member = guild.get_member(member_id)
 
         # If member has left the guild just return
         if member is None:

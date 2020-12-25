@@ -40,7 +40,9 @@ class Bot(commands.Bot):
             command_prefix=self.prefix_callable,
             help_command=None,
             description=self.config["bot_description"],
-            case_insensitive=True, **kwargs
+            case_insensitive=True,
+            intents=discord.Intents(guilds=True, members=True, messages=True),
+            **kwargs
         )
 
     async def prefix_callable(self, bot_client, message):
