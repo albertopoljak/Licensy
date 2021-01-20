@@ -2,11 +2,17 @@
 Script to backup your guild data if you need to keep it safe or to migrate.
 
 If you need different functionality you're free to download it and modify it however you want.
+
+Example usage:
+Backup(JSONBackup()).backup(123456789)
+above will get you naive dates (without timezone). If you know timezone of server the bot is in you can use:
+Backup(JSONBackup()).backup(123456789, server_timezone=timezone(timedelta(hours=-8)))
 """
 import json
 import sqlite3
 from typing import Dict, Any
 from abc import ABC, abstractmethod
+from datetime import datetime, timezone
 
 
 class BackupAdapter(ABC):
@@ -36,10 +42,21 @@ class Backup:
         self._conn = sqlite3.connect(self.DATABASE)
         self._backup_format = backup_format
 
-    def backup(self, guild_id: int, *, file_name: str = "backup"):
+    def backup(self, guild_id: int, *, file_name: str = "backup", server_timezone: timezone = None):
+        """
+        :param guild_id: int ID you want to backup from the database
+        :param file_name: str of file name to save backup data to. Defaults to "backup"
+        :param server_timezone: optional timezone. Licensy backend code saves dates as naive datetimes (><) but if you
+        pass this param then extracted datetimes will be converted to this timezone. If not passed extracted dates will
+        be naive.
+        """
+        licensed_members = self.get_licensed_members_table(guild_id)
+        if server_timezone is not None:
+            self._naive_dates_to_tz(licensed_members, server_timezone)
+
         data = {
             "GUILDS": self.get_guild_table(guild_id),
-            "LICENSED_MEMBERS": self.get_licensed_members_table(guild_id),
+            "LICENSED_MEMBERS": licensed_members,
             "GUILD_LICENSES": self.get_guild_licenses_table(guild_id)
         }
         text_format = self._backup_format.format(data)
@@ -67,7 +84,7 @@ class Backup:
         col_names = next(zip(*cursor.description))
         return {col_name: value for col_name, value in zip(col_names, values)}
 
-    def get_licensed_members_table(self, guild_id: int) -> Dict[int, Dict[str, Any]]:
+    def get_licensed_members_table(self, guild_id: int,) -> Dict[int, Dict[str, Any]]:
         """
         Bot was done in a way that timezone is not saved -.-
         So you'll get datetime but need to know what timezone your server/PC that is hosting the bot is in.
@@ -115,3 +132,10 @@ class Backup:
         for i, row in enumerate(cursor.fetchall()):
             return_data[i] = {col_name: value for col_name, value in zip(col_names, row)}
         return return_data
+
+    @classmethod
+    def _naive_dates_to_tz(cls, licensed_members_data: dict, server_timezone: timezone):
+        for sub_dict in licensed_members_data.values():
+            naive_datetime = datetime.strptime(sub_dict["EXPIRATION_DATE"], "%Y-%m-%d %H:%M:%S.%f")
+            proper_datetime = naive_datetime.replace(tzinfo=server_timezone)
+            sub_dict["EXPIRATION_DATE"] = str(proper_datetime)
