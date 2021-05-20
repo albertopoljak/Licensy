@@ -105,8 +105,18 @@ class LicenseHandler(commands.Cog):
                                 f"Guild **{guild_id}** loaded from database cannot be found in bot guilds!")
 
         member = guild.get_member(member_id)
+        # For some reason this can be NONE, tried to recreate it but failed.
+        # Short explanation is that member is indeed inside of the guild but at the time this is
+        # called member can be NONE for unknown reason. Log logs below line "Can't remove licensed role..because he
+        # has left the guild" , later when I tried to recreate it I couldn't. In test guild it was working and members
+        # in question were all later been confirmed that indeed they are in the guild cache, so dunno
+        # why this sometimes acts as if the member is not in the guild? Thus right now if it's None we will
+        # force a API call
+        if member is None:
+            member = await guild.fetch_member(member_id)
 
-        # If member has left the guild just return
+        # If member is still None in this case then either he indeed has left the guild
+        # or the bug has not been fixed. 
         if member is None:
             logger.warning(f"Can't remove licensed role {licensed_role_id} from member {member_id} "
                            f"because he has left the guild {licensed_role_id} ({guild.name}).")
