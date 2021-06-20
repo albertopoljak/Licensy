@@ -28,7 +28,7 @@ def get_file_handler() -> TimedRotatingFileHandler:
     """
     misc.check_create_directory(_log_directory)
     log_file_full_path = _log_directory + "log.txt"
-    file_handler = TimedRotatingFileHandler(log_file_full_path, when="D", interval=7, backupCount=10, encoding="utf-8")
+    file_handler = TimedRotatingFileHandler(log_file_full_path, when="D", backupCount=10, encoding="utf-8")
     file_handler.setFormatter(
         logging.Formatter("%(asctime)s - %(levelname)s - %(message)s [%(name)s/%(funcName)s]", "%d-%m-%Y %H:%M:%S")
     )

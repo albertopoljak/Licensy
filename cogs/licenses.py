@@ -116,7 +116,7 @@ class LicenseHandler(commands.Cog):
             member = await guild.fetch_member(member_id)
 
         # If member is still None in this case then either he indeed has left the guild
-        # or the bug has not been fixed. 
+        # or the bug has not been fixed.
         if member is None:
             logger.warning(f"Can't remove licensed role {licensed_role_id} from member {member_id} "
                            f"because he has left the guild {licensed_role_id} ({guild.name}).")
