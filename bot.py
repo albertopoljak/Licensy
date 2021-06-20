@@ -41,7 +41,7 @@ class Bot(commands.Bot):
             help_command=None,
             description=self.config["bot_description"],
             case_insensitive=True,
-            intents=discord.Intents(guilds=True, members=True, messages=True),
+            intents=discord.Intents(guilds=True, members=True, messages=True, reactions=True),
             **kwargs
         )
 
@@ -128,4 +128,3 @@ if __name__ == "__main__":
             root_logger.warning(traceback_msg)
 
     bot.run(bot.config["token"])
-
