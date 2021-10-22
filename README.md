@@ -12,7 +12,7 @@
 [![License AGPL3](https://img.shields.io/github/license/albertopoljak/Licensy?color=red)](LICENSE.md)
 [![Donate](https://img.shields.io/badge/-Donate-052d49?logo=patreon)](https://www.patreon.com/Licensy)
 
-My Discord account BrainDead#6105 is compromised, therefor this bot that has been running for 2+ years is dead. Kick it from your guild and self host your own and thank Discord Support for not doing anything for over 10 days while I could have easily verified myself if they just looked into it.
+My Discord account BrainDead#6105 is compromised, therefore this bot that has been running for 2+ years is dead. Kick it from your guild and self host your own and thank Discord Support for not doing anything for over 10 days while I could have easily verified myself if they just looked into it.
 
 # Licensy - easily manage expiration of roles with subscriptions!
 
