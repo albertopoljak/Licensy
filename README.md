@@ -5,7 +5,6 @@
 [![Licensy vAplha](https://img.shields.io/badge/Licensy-alpha-yellow)](#)
 [![Invite me!](https://img.shields.io/badge/-Invite%20me-gray?logo=discord)](https://discordapp.com/oauth2/authorize?client_id=604057722878689324&scope=bot&permissions=268446720)
 [![Upvote me](https://img.shields.io/badge/-Upvote%20me-7289DA)](https://discordbots.org/bot/604057722878689324)
-[![Discord support server](https://img.shields.io/discord/613844667611611332?color=%237289DA&label=Support%20Server&logo=discord)](https://discord.gg/trCYUkz)
 [![Activity](https://img.shields.io/github/commit-activity/w/albertopoljak/Licensy)](https://github.com/albertopoljak/Licensy/pulse)
 [![Contributions welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg?style=flat)](#)
 [![Python 3.6+](https://img.shields.io/badge/python-3.6%2B-blue)](#)
@@ -13,6 +12,8 @@
 [![Donate](https://img.shields.io/badge/-Donate-052d49?logo=patreon)](https://www.patreon.com/Licensy)
 
 My Discord account BrainDead#6105 is compromised, therefore this bot that has been running for 2+ years is dead. Kick it from your guild and self host your own and thank Discord Support for not doing anything for over 10 days while I could have easily verified myself if they just looked into it.
+
+If the bot is EVER back you will know HERE. NOT from the support server (which you can leave) nor from ANY discord account.
 
 # Licensy - easily manage expiration of roles with subscriptions!
 
