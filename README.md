@@ -8,9 +8,13 @@
 [![Python 3.6+](https://img.shields.io/badge/python-3.6%2B-blue)](#)
 [![License AGPL3](https://img.shields.io/github/license/albertopoljak/Licensy?color=red)](LICENSE.md)
 
-My Discord account BrainDead#6105 is compromised, therefore this bot that has been running for 2+ years is dead. Kick it from your guild and self host your own and thank Discord Support for not doing anything for over 10 days while I could have easily verified myself if they just looked into it.
+After a long wait from support I finally got my account BrainDead#6105 back.
 
-If the bot is EVER back you will know HERE. NOT from the support server (which you can leave) nor from ANY discord account.
+However the damage has been done and I do not want to host the bot annymore.
+
+You can use this source to host it yourself or find someone else who is hosting it (remember that the bot does NOT need admin).
+
+For any questions or for getting your old data back contact me on Discord.
 
 # Licensy - easily manage expiration of roles with subscriptions!
 
