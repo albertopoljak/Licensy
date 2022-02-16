@@ -2,19 +2,15 @@
     <img src="https://raw.githubusercontent.com/albertopoljak/Licensy/master/logo.png">
 </p>
 
-[![Licensy vAplha](https://img.shields.io/badge/Licensy-alpha-yellow)](#)
-[![Activity](https://img.shields.io/github/commit-activity/w/albertopoljak/Licensy)](https://github.com/albertopoljak/Licensy/pulse)
-[![Contributions welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg?style=flat)](#)
-[![Python 3.6+](https://img.shields.io/badge/python-3.6%2B-blue)](#)
+[![Licensy archived](https://img.shields.io/badge/Licensy-archived-red)](#)
+[![Python 3.6](https://img.shields.io/badge/python-3.6%2B-blue)](#)
 [![License AGPL3](https://img.shields.io/github/license/albertopoljak/Licensy?color=red)](LICENSE.md)
 
-After a long wait from support I finally got my account BrainDead#6105 back.
+This bot is archived, there will be no more updates.
 
-However the damage has been done and I do not want to host the bot annymore.
+I am also no longer hosting the bot, you can find someone else to host it, or you can host it yourself.
 
-You can use this source to host it yourself or find someone else who is hosting it (remember that the bot does NOT need admin).
-
-For any questions or for getting your old data back contact me on Discord.
+I will still be active in the support server but please ask bot related questions (no questions like 'how to setup vps' you can Google those)
 
 # Licensy - easily manage expiration of roles with subscriptions!
 
@@ -48,7 +44,7 @@ After the bot joined the guild call:
 
 First line will set **@role_here** as default guild role.
 
-Second will generate 5 licenses, and as you can see only 5 is a argument so the 
+Second will generate 5 licenses, and as you can see only 5 is an argument so the 
 command will use **default** guild role (previously set to **@role_here**) and **default** expiration 
 date (which is initially set to 720h aka 30days upon guild join).
 
@@ -85,14 +81,14 @@ Optional (so you have more information):
 
 For any other questions/help/suggestions/anything call `!support` and join the support server :)
 
-You can also join it from this github page, click on the icon at the top of this readme.
+You can also join it from this Github page, click on the icon at the top of this readme.
 
 ## Permissions needed
 
-Note that even if bot has all of these permission he might still not be able to manage some roles:
+Note that even if bot has all of these permissions he might still not be able to manage some roles:
 
-- Remember that bots role has to be **higher** in role hierarchy than the managed members top role.
-Meaning it can only manage roles **below** it's own role in hierarchy.
+- Remember that bots' role has to be **higher** in role hierarchy than the managed members top role.
+Meaning it can only manage roles **below** its own role in hierarchy.
 
 Bot needs these permissions to operate:
 
@@ -121,7 +117,7 @@ This happens for example if you redeem license for a role you **already** have.
 
 ## Requirements for source
 
-You need Python 3.6 or later and packages from `requirements.txt`
+You need Python 3.6 and packages from `requirements.txt`
 
 In Ubuntu, Mint and Debian you can install Python 3 like this:
 
@@ -138,14 +134,9 @@ $ cd Licensy
 $ pip install -r requirements.txt
 ```
 
-Note that discord.py version that was used in development is 1.2.5
-, anything above that (except for mayor version changes) should work.
-
-Nevertheless for compatibility reasons the `requirements.txt` will target specifically v1.2.5
-but if you are sure that there are no breaking changes in future version feel free to update.
-
 Before running the bot edit the `config.json` found in the root directory.
-Adding the token is the most important thing.
+Adding the bot token is the most important thing.
+If you don't know what top.gg is or don't need it you can leave top_gg_api_key as it is (empty).
 
 After that you are ready to run it:
 
@@ -186,7 +177,7 @@ But if you fork/download/host this bot and you **CHANGED** any of the code you *
 - Include install instructions
   - You can link to this readme or to your own instructions.
 
-Only and only if you adhere to all of the above points you **can**:
+Only and only if you adhere to all the above points you **can**:
 
 - Use the bot for commercial use
 - Modify the source

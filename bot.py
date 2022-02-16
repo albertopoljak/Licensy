@@ -26,8 +26,10 @@ startup_extensions = [
     "guild",
     "bot_information",
     "help",
-    "top_gg_api",
-    "cmd_errors"
+    "cmd_errors",
+    # Removed because a lot of users are asking about the token when they don't even need this cog.
+    # If you need it then re-enable it.
+    # "top_gg_api",
 ]
 
 
